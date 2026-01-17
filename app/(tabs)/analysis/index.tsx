@@ -92,7 +92,7 @@ export default function AnalysisScreen() {
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
         <Image
-          source={require("@/assets/images/magnum.png")}
+          source={require("@/assets/images/TotoLOGO.png")}
           style={{ height: 50, width: 50, borderRadius: 10 }}
         />
       </View>
@@ -106,7 +106,7 @@ export default function AnalysisScreen() {
             style={[styles.card, styles.shadow]}
             onPress={() => handleCardPress(prizes[0].draw_date)} // Use the original draw_date from the first prize
           >
-            <Text style={styles.date}>{date}</Text>
+            <Text style={styles.date}>Past results:  {date}</Text>
             <View style={styles.prizeContainer}>
               {prizes
                 .sort((a, b) => parseInt(a.prize_type) - parseInt(b.prize_type))

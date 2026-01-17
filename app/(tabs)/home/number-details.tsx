@@ -172,7 +172,7 @@ export default function NumberDetailsScreen() {
               >
                 <View style={styles.logoCol}>
                   <Image 
-                    source={require('@/assets/images/magnum.png')} 
+                    source={require("@/assets/images/TotoLOGO.png")} 
                     style={{ height: 40, width: 40, borderRadius: 10 }}
                   />
                 </View>

@@ -270,8 +270,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeFilter: {
-    backgroundColor: '#007AFF',
-    borderColor: '#005bb5',
+    backgroundColor: "#d60000ff",
+    borderColor: "#d60000ff",
   },
   filterText: {
     color: '#333',
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   pageButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#d60000ff",
     borderRadius: 20,
   },
   pageButtonText: {

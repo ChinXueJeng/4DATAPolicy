@@ -60,9 +60,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Modal,
   TouchableOpacity,
   Dimensions,
   Image,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -218,8 +220,19 @@ export default function HomeScreen() {
   const router = useRouter();
   // Get the user's ID from Supabase auth
   const [userId, setUserId] = useState('default');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const luckyNumber = useDailyLuckyNumber(userId);
   const nextDrawDate = useNextDrawDate();
+
+  const showCustomAlert = (message: string) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
+  };
 
   useEffect(() => {
     const getUserId = async () => {
@@ -282,12 +295,26 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#EEF3F9" }}>
+      {/* Custom Alert Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showAlert}
+        onRequestClose={() => setShowAlert(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowAlert(false)}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={styles.alertContainer}>
+          <Text style={styles.alertText}>{alertMessage}</Text>
+        </View>
+      </Modal>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.imageContainer}>
             <TouchableOpacity 
-              onPress={() => router.push("/home/index_magnum")}>
+              onPress={() => showCustomAlert("Coming Soon! This feature will be available soon!")}>
               <Image
                 source={require("@/assets/images/magnumLOGO.png")}
                 style={{ height: 50, width: 50, borderRadius: 10 }}
@@ -308,8 +335,8 @@ export default function HomeScreen() {
         {/* Lucky Number * Upset Level*/}
         <View style={styles.secondheader}>
           <View style={[styles.upsetBox, strongShadow]}>
-            <Text style={[styles.luckyText, { marginBottom: 4 }]}>Upset Level:</Text>
-            <Text style={{ color: "#fff", fontSize: 21, fontWeight: "bold", textAlign: "center" }}>LOW</Text>
+            <Text style={[styles.luckyText, { marginBottom: 4 }]}>SELECTED:</Text>
+            <Text style={{ color: "#fff", fontSize: 21, fontWeight: "bold", textAlign: "center" }}>TOTO</Text>
           </View>
           <View style={[styles.luckyBox, strongShadow]}>
             <Text style={[styles.luckyText, { marginBottom: 4 }]}>Your Lucky Number:</Text>
@@ -366,6 +393,38 @@ const strongShadow = {
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  alertContainer: {
+    position: 'absolute',
+    top: '40%',
+    left: '10%',
+    right: '10%',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  alertText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#333',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

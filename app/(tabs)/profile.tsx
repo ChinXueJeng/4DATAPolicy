@@ -30,7 +30,7 @@ export default function ProfileScreen() {
 
         {/* Avatar */}
         <Image
-          source={require("@/assets/images/magnum.png")}
+          source={require("@/assets/images/TotoLOGO.png")}
           style={styles.avatar}
         />
 
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
 
   logoutBtn: {
     marginTop: 20,
-    backgroundColor: "#0b57d0",
+    backgroundColor: "#d60000ff",
     paddingVertical: 12,
     borderRadius: 20,
     alignItems: "center",
