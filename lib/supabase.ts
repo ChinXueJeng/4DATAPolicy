@@ -48,7 +48,7 @@ const nativeStorage = {
 
 const storage = isWeb ? webStorage : nativeStorage;
 
-// Replace these with your Supabase project's credentials
+// Supabase project's credentials
 const supabaseUrl = 'https://mfrmfxtfjmuolckjfpys.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mcm1meHRmam11b2xja2pmcHlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4Mzk4MTEsImV4cCI6MjA4MTQxNTgxMX0.sClWkXWLf9vWS6Rsffse6gKzYatPJkSpm1n_vWZ0Jxc';
 
