@@ -22,6 +22,11 @@
     }
   },
   "submit": {
-    "production": {}
+    "development": {
+      "ios": {
+        "appleId": "chinxuejeng@gmail.com",
+        "ascAppId": "92960095"
+      }
+    }
   }
 }

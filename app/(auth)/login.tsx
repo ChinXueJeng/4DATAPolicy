@@ -16,6 +16,8 @@ const getRedirectUrl = () => {
 };
 import { supabase, signInWithGoogle, signInWithFacebook } from '@/lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as AuthSession from "expo-auth-session";
+
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

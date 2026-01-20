@@ -7,6 +7,12 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import { makeRedirectUri } from 'expo-auth-session';
+import * as AuthSession from "expo-auth-session";
+
+const redirectUri = AuthSession.makeRedirectUri({
+  scheme: 'fourdata',
+  preferLocalhost: true
+});
 
 const isWeb = Platform.OS === 'web';
 
@@ -88,7 +94,7 @@ const getRedirectUrl = () => {
   if (Platform.OS === 'ios') {
     return makeRedirectUri({
       scheme: 'fourdata',
-      preferLocalhost: false
+      preferLocalhost: true
     });
   }
 
@@ -117,8 +123,8 @@ if (typeof window !== 'undefined') {
     // Replace these with your actual client IDs from Google Cloud Console
     androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
     iosClientId: '457819047674-uu6gg5cpqh2vri5i34jglmhpkl4at8il.apps.googleusercontent.com',
-    webClientId: '457819047674-rb8omn34p5sue7ssbhg25fn325qu4dle.apps.googleusercontent.com',
-    expoClientId: 'YOUR_EXPO_CLIENT_ID.apps.googleusercontent.com',
+    webClientId: '457819047674-8m2uiko9ddds5g608etkn7aj3tbrgbke.apps.googleusercontent.com',
+    expoClientId: '457819047674-8m2uiko9ddds5g608etkn7aj3tbrgbke.apps.googleusercontent.com',
     scopes: ['profile', 'email'],
     redirectUri: getRedirectUrl(),
   };
@@ -166,8 +172,7 @@ export const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'fourdata://login-callback',
-        
+        redirectTo: redirectUri,
         skipBrowserRedirect: true, // Important for mobile
       },
     });
@@ -180,10 +185,7 @@ export const signInWithGoogle = async () => {
 
     // Open the auth URL in the browser
     if (data?.url) {
-      const result = await WebBrowser.openAuthSessionAsync(
-        data.url,
-        'fourdata://login-callback'
-      );
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
       console.log('Auth session result:', result)
       if (result.type === 'success') {
         const url = new URL(result.url);
