@@ -13,12 +13,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [recent, setRecent] = useState(["3933"]);
+  const { t } = useLanguage();
 
   const removeItem = (index: number) => {
     setRecent((prev) => prev.filter((_, i) => i !== index));
@@ -50,7 +52,7 @@ export default function ExploreScreen() {
           <View style={styles.searchBox}>
             <Ionicons name="search" size={18} color="#999" />
             <TextInput
-              placeholder="Enter 4-digit number"
+              placeholder={t('enter4digitnumber')}
               value={search}
               onChangeText={(text) => {
                 // Only allow numbers and limit to 4 digits
@@ -68,16 +70,16 @@ export default function ExploreScreen() {
             disabled={search.length !== 4}
             style={[styles.searchButton, search.length !== 4 && styles.searchButtonDisabled]}
           >
-            <Text style={styles.searchButtonText}>Search</Text>
+            <Text style={styles.searchButtonText}>{t('search')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Recent Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.recentText}>Recent</Text>
+            <Text style={styles.recentText}>{t('recent')}</Text>
             <TouchableOpacity onPress={() => setRecent([])}>
-              <Text style={styles.clear}>Clear All</Text>
+              <Text style={styles.clear}>{t('clearall')}</Text>
             </TouchableOpacity>
           </View>
 

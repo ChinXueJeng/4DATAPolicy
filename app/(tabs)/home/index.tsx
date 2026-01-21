@@ -3,11 +3,11 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import * as SecureStore from 'expo-secure-store';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 // Generate a consistent daily lucky number for the user
 const useDailyLuckyNumber = (userId: string): number => {
   const [luckyNumber, setLuckyNumber] = useState<number>(0);
-
   useEffect(() => {
     const generateLuckyNumber = async () => {
       try {
@@ -224,6 +224,7 @@ export default function HomeScreen() {
   const [alertMessage, setAlertMessage] = useState('');
   const luckyNumber = useDailyLuckyNumber(userId);
   const nextDrawDate = useNextDrawDate();
+  const { t } = useLanguage();
 
   const showCustomAlert = (message: string) => {
     setAlertMessage(message);
@@ -314,7 +315,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.imageContainer}>
             <TouchableOpacity 
-              onPress={() => showCustomAlert("Coming Soon! This feature will be available soon!")}>
+              onPress={() => showCustomAlert(t('comingsoon'))}>
               <Image
                 source={require("@/assets/images/magnumLOGO.png")}
                 style={{ height: 50, width: 50, borderRadius: 10 }}
@@ -326,7 +327,7 @@ export default function HomeScreen() {
             />
             </View>
           <View>
-            <Text style={styles.subText}>Next Draw:</Text>
+            <Text style={styles.subText}>{t('nextDraw')}</Text>
             <Text style={styles.title}>{nextDrawDate || 'Loading...'}</Text>
           </View>
           
@@ -335,11 +336,11 @@ export default function HomeScreen() {
         {/* Lucky Number * Upset Level*/}
         <View style={styles.secondheader}>
           <View style={[styles.upsetBox, strongShadow]}>
-            <Text style={[styles.luckyText, { marginBottom: 4 }]}>SELECTED:</Text>
+            <Text style={[styles.luckyText, { marginBottom: 4 }]}>{t('select')}</Text>
             <Text style={{ color: "#fff", fontSize: 21, fontWeight: "bold", textAlign: "center" }}>TOTO</Text>
           </View>
           <View style={[styles.luckyBox, strongShadow]}>
-            <Text style={[styles.luckyText, { marginBottom: 4 }]}>Your Lucky Number:</Text>
+            <Text style={[styles.luckyText, { marginBottom: 4 }]}>{t('yourluckynumber')}</Text>
             <Text style={{ color: "#fff", fontSize: 23, fontWeight: "bold", textAlign: "center" }}>{luckyNumber}</Text>
           </View>
         </View>
@@ -357,12 +358,12 @@ export default function HomeScreen() {
           ]}
         >
           <Text style={{ fontSize: 20, textAlign: "center" }}>
-            High Probability Numbers
-          </Text>
+  {t('highProbabilityNumbers')}
+</Text>
         </View>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text>Loading numbers...</Text>
+            <Text>{t('loadingnum')}</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>

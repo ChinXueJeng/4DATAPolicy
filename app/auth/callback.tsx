@@ -1,48 +1,68 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+import 'react-native-url-polyfill/auto';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleAuthRedirect = async () => {
+    const handleAuth = async () => {
       try {
-        // Get the URL that opened the app
+        // Get the initial URL from the OAuth redirect
         const url = await Linking.getInitialURL();
         
-        if (url) {
-          // If the URL contains an access token, process it
-          if (url.includes('access_token')) {
-            const { data, error } = await supabase.auth.getSession();
-            
-            if (error) throw error;
-            
-            if (data?.session) {
-              // Navigate to home on successful authentication
-              router.replace('/(tabs)/home');
-              return;
-            }
+        if (!url) {
+          console.log('No URL found - might be opening app fresh');
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            router.replace('/(tabs)/home');
+          } else {
+            router.replace('/login');
           }
+          return;
         }
         
-        // If we get here, something went wrong
-        router.replace('/(auth)/login');
+        // Parse the URL to get the hash fragment
+        const hashFragment = url.split('#')[1];
+        if (!hashFragment) {
+          throw new Error('No hash fragment in URL');
+        }
+        
+        // Parse the hash fragment to get params
+        const params = new URLSearchParams(hashFragment);
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        
+        if (access_token && refresh_token) {
+          // Set the session
+          const { data, error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+          
+          if (error) throw error;
+          
+          // Success - navigate to home
+          router.replace('/(tabs)/home');
+        } else {
+          throw new Error('Missing tokens in URL');
+        }
       } catch (error) {
-        console.error('Error handling auth redirect:', error);
-        router.replace('/(auth)/login');
+        console.error('OAuth error:', error);
+        router.replace('/login');
       }
     };
-
-    handleAuthRedirect();
-  }, []);
+    
+    handleAuth();
+  }, [router]);
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
+      <Text>Completing sign in...</Text>
     </View>
   );
 }

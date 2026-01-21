@@ -34,7 +34,7 @@ export default function RegisterScreen() {
           options: {
             emailRedirectTo: Platform.OS === 'web'
               ? window.location.origin
-              : 'magnum://',
+              : 'fourdata://',
             data: {
               email: email,
               // Add any additional user metadata here

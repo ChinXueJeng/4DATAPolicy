@@ -1,0 +1,23 @@
+{
+  "highProbabilityNumbers": "高概率数字",
+  "welcome": "欢迎",
+  "switchToChinese": "切换到中文",
+  "switchToEnglish": "切换到英文",
+  "comingsoon": "即将推出！此功能即将上线！",
+  "select": "选择: ",
+  "yourluckynumber": "你的幸运号码: ",
+  "nextDraw": "下一次抽奖: ",
+  "logout": "退出登录",
+  "back": "返回",
+  "myaccount": "我的账户",
+  "general": "常规设置",
+  "privacypolicy": "隐私政策",
+  "termandconditions": "条款与条件",
+  "FAQ": "常见问题",
+  "clearall": "清空",
+  "recent": "最近",
+  "search": "搜索",
+  "enter4digitnumber": "请输入4位数字",
+  "point": "积分:",
+  "nospecialpriceavalaible": "没有特别奖"
+}

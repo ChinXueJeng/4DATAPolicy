@@ -1,13 +1,13 @@
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
-import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as AuthSession from "expo-auth-session";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: 'fourdata',
@@ -60,10 +60,12 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: storage,
+    storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: !isWeb,
+    detectSessionInUrl: false, // IMPORTANT: Set to false for Expo
+    flowType: 'pkce', // Use PKCE flow
+    debug: true, // Enable for debugging
   },
 });
 
@@ -87,30 +89,18 @@ console.log('DEBUG - iOS Redirect URI:', debugUri);
 // Get the correct redirect URL based on platform
 const getRedirectUrl = () => {
   if (isWeb) {
+    console.log('window.location.origin: ', window.location.origin);
     return `${window.location.origin}/auth/callback`;
   }
 
-  // For iOS, use the app's custom URL scheme
-  if (Platform.OS === 'ios') {
-    return makeRedirectUri({
-      scheme: 'fourdata',
-      preferLocalhost: true
-    });
-  }
-
-  // For Android, use the app's custom URL scheme
-  if (Platform.OS === 'android') {
-    return makeRedirectUri({
-      scheme: 'fourdata',
-      preferLocalhost: false
-    });
-  }
-
-  // Fallback for other platforms
-  return makeRedirectUri({
-    scheme: 'fourdata',
-    preferLocalhost: true,
+  // For mobile, use the app's custom URL scheme
+  const redirectUrl = makeRedirectUri({
+    scheme: 'fourdata',  // Make sure this matches your app.json scheme
+    path: 'auth/callback'
   });
+  
+  console.log('Redirect URL:', redirectUrl);
+  return redirectUrl;
 };
 
 // Initialize auth requests

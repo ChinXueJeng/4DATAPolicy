@@ -4,11 +4,14 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
+import { useLanguage } from '../contexts/LanguageContext';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+
+  const { t, currentLanguage, changeLanguage } = useLanguage();
 
   // Removed swipe-to-close functionality
 
@@ -21,12 +24,12 @@ export default function ProfileScreen() {
         activeOpacity={0.7}
       >
         <MaterialIcons name="arrow-back" size={18} />
-        <Text style={styles.backText}>Back</Text>
+        <Text style={styles.backText}>{t('back')}</Text>
       </TouchableOpacity>
 
       {/* Card */}
       <View style={styles.card}>
-        <Text style={styles.title}>My Account</Text>
+        <Text style={styles.title}>{t('myaccount')}</Text>
 
         {/* Avatar */}
         <Image
@@ -34,24 +37,26 @@ export default function ProfileScreen() {
           style={styles.avatar}
         />
 
-        <Text style={styles.name}>Name Goes Here</Text>
-
+        
         {/* Section */}
-        <Text style={styles.section}>General</Text>
+        <Text style={styles.section}>{t('general')}</Text>
 
         <ProfileRow 
-          title="FAQ" 
+          title={t('FAQ')}
           onPress={() => setShowFAQ(true)} 
         />
         <ProfileRow 
-          title="Terms & Conditions" 
+          title={t('termandconditions')}
           onPress={() => setShowTerms(true)} 
         />
         <ProfileRow 
-          title="Privacy Policy" 
+          title={t('privacypolicy')} 
           onPress={() => setShowPrivacy(true)} 
         />
-
+        <ProfileRow
+        title={currentLanguage === 'zh' ? t('switchToEnglish') : t('switchToChinese')}
+        onPress={() => changeLanguage(currentLanguage === 'zh' ? 'en' : 'zh')}
+        />
         {/* Logout */}
         <TouchableOpacity 
           style={styles.logoutBtn}
@@ -61,7 +66,7 @@ export default function ProfileScreen() {
             router.replace("/(auth)/login");
           }}
         >
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
                     
 
@@ -280,7 +285,7 @@ export default function ProfileScreen() {
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <ScrollView style={styles.modalContent}>
-            <Text style={styles.sectionTitle}>Frequently Asked Questions (FAQ)</Text>
+            <Text style={styles.sectionTitle}>{t('FAQ')}</Text>
 
 <Text style={styles.sectionTitle}>About the App</Text>
 <Text style={styles.subSectionTitle}>Q: What does this app do?</Text>

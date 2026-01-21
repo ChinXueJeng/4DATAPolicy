@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface Winner {
   id: string;
@@ -28,6 +29,7 @@ export default function AnalysisDetails() {
   const [consolationPrizes, setConsolationPrizes] = useState<Array<{number: string, total_points: number | null}>>([]);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchWinners = async () => {
@@ -118,7 +120,7 @@ export default function AnalysisDetails() {
     onPress={() => router.push('/(tabs)/analysis')}
   >
     <Ionicons name="arrow-back" size={16} />
-    <Text style={styles.backText}>Back</Text>
+    <Text style={styles.backText}>{t('back')}</Text>
   </TouchableOpacity>
 </View>
       <ScrollView
@@ -156,7 +158,7 @@ export default function AnalysisDetails() {
                 />
                 <Text style={styles.topNumber}>{item.number}</Text>
                 {item.total_points !== null && (
-                  <Text style={styles.pointsText}>Points: {item.total_points}</Text>
+                  <Text style={styles.pointsText}>{t('point')}{item.total_points}</Text>
                 )}
               </View>
             );
@@ -185,7 +187,7 @@ export default function AnalysisDetails() {
                 );
               })
             ) : (
-              <Text style={styles.noDataText}>No special prizes available</Text>
+              <Text style={styles.noDataText}>{t('nospecialpriceavalaible')}</Text>
             )}
           </Section>
 
