@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { initI18n } from '@/i18n';
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -40,15 +41,17 @@ function RootLayout() {
 
   return (
     <LanguageProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="subscription" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <SubscriptionProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="subscription" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </SubscriptionProvider>
     </LanguageProvider>
   );
 }

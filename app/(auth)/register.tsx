@@ -1,8 +1,9 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { supabase, signInWithGoogle } from '@/lib/supabase';
+import { supabase, signInWithGoogle, generateUsername } from '@/lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ export default function RegisterScreen() {
     try {
       if (type === 'email') {
         // Basic validation
-        if (!email || !password) {
+        if (!email || !password || !confirmPassword) {
           throw new Error('Please fill in all fields');
         }
         if (password !== confirmPassword) {
@@ -25,18 +26,23 @@ export default function RegisterScreen() {
         if (password.length < 6) {
           throw new Error('Password must be at least 6 characters');
         }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+          throw new Error('Please enter a valid email address');
+        }
 
         console.log('Attempting to register with email:', email);
         
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: email.trim(),
+          password: password.trim(),
           options: {
             emailRedirectTo: Platform.OS === 'web'
-              ? window.location.origin
-              : 'fourdata://',
+              ? window.location.origin + '/auth/callback'
+              : 'fourdata://auth/callback',
             data: {
-              email: email,
+              email: email.trim(),
+              full_name: generateUsername(email),
+              username: generateUsername(email),
               // Add any additional user metadata here
             }
           },
@@ -46,7 +52,17 @@ export default function RegisterScreen() {
 
         if (error) {
           console.error('Signup error details:', error);
-          throw error;
+          
+          // Handle specific error cases
+          if (error.message.includes('already registered')) {
+            throw new Error('This email is already registered. Please log in instead.');
+          } else if (error.message.includes('weak_password')) {
+            throw new Error('Please choose a stronger password');
+          } else if (error.message.includes('email')) {
+            throw new Error('Please enter a valid email address');
+          } else {
+            throw error;
+          }
         }
 
         // If we get here, signup was successful
@@ -54,20 +70,21 @@ export default function RegisterScreen() {
           throw new Error('This email is already registered');
         }
 
-        // If email confirmation is required (depends on your Supabase settings)
-        if (!data.session) {
-          Alert.alert(
-            'Check your email',
-            'A confirmation email has been sent. Please verify your email to continue.'
-          );
-          // Optionally navigate to login or stay on the page
-          return;
-        }
+        // Store the email in AsyncStorage for the login screen
+        await AsyncStorage.setItem('userEmail', email);
 
-        // If auto-login is successful (email confirmations off)
-        if (data.session) {
-          router.replace('/(tabs)/home');
-        }
+        // Show success message
+        Alert.alert(
+          'Check your email',
+          'A confirmation email has been sent. Please verify your email to continue.',
+          [
+            {
+              text: 'Go to Login',
+              onPress: () => router.replace('/(auth)/login'),
+              style: 'default',
+            },
+          ]
+        );
       }
     } catch (err) {
       console.error('Registration error:', err);

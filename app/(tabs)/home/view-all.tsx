@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useTranslation } from 'react-i18next';
+
 type NumberItem = {
   id: number;
   number: number;
@@ -18,6 +20,7 @@ type ViewAllNumbersProps = {
 };
 
 const ViewAllNumbers = () => {
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const source = params.source as string || 'default';
   const tableName = source === 'magnum' ? 'nextDrawProb_magnum' : 'nextDrawProb';
@@ -131,7 +134,7 @@ const ViewAllNumbers = () => {
   if (loading && numbers.length === 0) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <Text>Loading numbers...</Text>
+        <Text>{t('loadingnumbers')}</Text>
       </SafeAreaView>
     );
   }
@@ -145,8 +148,8 @@ const ViewAllNumbers = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>High Probability Numbers</Text>
-        <Text style={styles.countText}>Showing {numbers.length} of {totalItems} numbers</Text>
+        <Text style={styles.title}>{t('highProbabilityNumbers')}</Text>
+        <Text style={styles.countText}>{t('showing')} {numbers.length} {t('of')} {totalItems} {t('numbers')}</Text>
         <View style={styles.filterContainer}>
           <TouchableOpacity 
             style={[styles.filterButton, activeFilter === 90 && styles.activeFilter]}

@@ -12,6 +12,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from '@/app/contexts/LanguageContext';
+
+
 interface LotteryResult {
   draw_date: string;
   number: string;
@@ -23,6 +26,7 @@ export default function AnalysisScreen() {
   const [results, setResults] = useState<Record<string, LotteryResult[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const handleCardPress = (date: string) => {
     // Format the date to YYYY-MM-DD for the URL
@@ -89,7 +93,7 @@ export default function AnalysisScreen() {
           onPress={() => router.back()}
         >
           <Ionicons name="arrow-back" size={16} />
-          <Text style={styles.backText}>Back</Text>
+          <Text style={styles.backText}>{t('back')}</Text>
         </TouchableOpacity>
         <Image
           source={require("@/assets/images/TotoLOGO.png")}
@@ -106,7 +110,7 @@ export default function AnalysisScreen() {
             style={[styles.card, styles.shadow]}
             onPress={() => handleCardPress(prizes[0].draw_date)} // Use the original draw_date from the first prize
           >
-            <Text style={styles.date}>Past results:  {date}</Text>
+            <Text style={styles.date}>{t('pastresults')}{date}</Text>
             <View style={styles.prizeContainer}>
               {prizes
                 .sort((a, b) => parseInt(a.prize_type) - parseInt(b.prize_type))

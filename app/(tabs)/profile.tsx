@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, ScrollView } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -10,10 +10,16 @@ export default function ProfileScreen() {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
-
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const { t, currentLanguage, changeLanguage } = useLanguage();
 
-  // Removed swipe-to-close functionality
+
+  type UserProfile = {
+    id: string;
+    username: string;
+    email: string;
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
@@ -36,8 +42,7 @@ export default function ProfileScreen() {
           source={require("@/assets/images/TotoLOGO.png")}
           style={styles.avatar}
         />
-
-        
+   
         {/* Section */}
         <Text style={styles.section}>{t('general')}</Text>
 
@@ -456,7 +461,17 @@ const styles = StyleSheet.create({
   },
 
   backText: {
-    fontSize: 14,
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  loading: {
+    marginTop: 10,
   },
 
   card: {

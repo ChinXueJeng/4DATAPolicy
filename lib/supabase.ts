@@ -3,21 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
 import { makeRedirectUri } from 'expo-auth-session';
-import * as AuthSession from "expo-auth-session";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const redirectUri = AuthSession.makeRedirectUri({
-  scheme: 'fourdata',
-  preferLocalhost: true
-});
 
 const isWeb = Platform.OS === 'web';
-
-// Initialize WebBrowser for OAuth
-WebBrowser.maybeCompleteAuthSession();
 
 // For web, use localStorage
 const webStorage = {
@@ -60,17 +48,15 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
+    storage: storage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // IMPORTANT: Set to false for Expo
-    flowType: 'pkce', // Use PKCE flow
-    debug: true, // Enable for debugging
+    detectSessionInUrl: !isWeb,
   },
 });
 
 // Function to generate a random username
-const generateUsername = (email: string) => {
+export const generateUsername = (email: string) => {
   // Get first 5 characters of the email (or less if shorter)
   const prefix = email.split('@')[0].toLowerCase().slice(0, 5);
   // Generate 4 random digits
@@ -89,18 +75,30 @@ console.log('DEBUG - iOS Redirect URI:', debugUri);
 // Get the correct redirect URL based on platform
 const getRedirectUrl = () => {
   if (isWeb) {
-    console.log('window.location.origin: ', window.location.origin);
     return `${window.location.origin}/auth/callback`;
   }
 
-  // For mobile, use the app's custom URL scheme
-  const redirectUrl = makeRedirectUri({
-    scheme: 'fourdata',  // Make sure this matches your app.json scheme
-    path: 'auth/callback'
+  // For iOS, use the app's custom URL scheme
+  if (Platform.OS === 'ios') {
+    return makeRedirectUri({
+      scheme: 'fourdata',
+      preferLocalhost: false
+    });
+  }
+
+  // For Android, use the app's custom URL scheme
+  if (Platform.OS === 'android') {
+    return makeRedirectUri({
+      scheme: 'fourdata',
+      preferLocalhost: false
+    });
+  }
+
+  // Fallback for other platforms
+  return makeRedirectUri({
+    scheme: 'fourdata',
+    preferLocalhost: true,
   });
-  
-  console.log('Redirect URL:', redirectUrl);
-  return redirectUrl;
 };
 
 // Initialize auth requests
@@ -113,48 +111,13 @@ if (typeof window !== 'undefined') {
     // Replace these with your actual client IDs from Google Cloud Console
     androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
     iosClientId: '457819047674-uu6gg5cpqh2vri5i34jglmhpkl4at8il.apps.googleusercontent.com',
-    webClientId: '457819047674-8m2uiko9ddds5g608etkn7aj3tbrgbke.apps.googleusercontent.com',
-    expoClientId: '457819047674-8m2uiko9ddds5g608etkn7aj3tbrgbke.apps.googleusercontent.com',
+    webClientId: '457819047674-rb8omn34p5sue7ssbhg25fn325qu4dle.apps.googleusercontent.com',
+    expoClientId: 'YOUR_EXPO_CLIENT_ID.apps.googleusercontent.com',
     scopes: ['profile', 'email'],
     redirectUri: getRedirectUrl(),
   };
 }
 
-// Helper function to handle Facebook OAuth sign in
-export const signInWithFacebook = async () => {
-  try {
-    if (!facebookAuthRequest) {
-      const redirectUrl = getRedirectUrl();
-      console.log('Facebook redirect URL:', redirectUrl);
-      
-      const response = await WebBrowser.openAuthSessionAsync(
-        `https://${process.env.EXPO_PUBLIC_SUPABASE_URL || 'your-project-id.supabase.co'}/auth/v1/authorize?provider=facebook&redirect_to=${encodeURIComponent(redirectUrl)}`,
-        redirectUrl
-      );
-
-      if (response.type === 'success') {
-        const url = new URL(response.url);
-        const params = new URLSearchParams(url.hash.substring(1));
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        
-        if (accessToken && refreshToken) {
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          
-          if (error) throw error;
-          return data;
-        }
-      }
-      throw new Error('Facebook authentication was cancelled');
-    }
-  } catch (error) {
-    console.error('Facebook auth error:', error);
-    throw error;
-  }
-};
 
 // Helper function to handle Google OAuth sign in
 export const signInWithGoogle = async () => {
@@ -162,7 +125,8 @@ export const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUri,
+        redirectTo: 'fourdata://login-callback',
+        
         skipBrowserRedirect: true, // Important for mobile
       },
     });
@@ -175,7 +139,10 @@ export const signInWithGoogle = async () => {
 
     // Open the auth URL in the browser
     if (data?.url) {
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.url,
+        'fourdata://login-callback'
+      );
       console.log('Auth session result:', result)
       if (result.type === 'success') {
         const url = new URL(result.url);

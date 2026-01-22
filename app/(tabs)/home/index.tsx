@@ -1,9 +1,10 @@
 
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useRouter, useFocusEffect } from "expo-router";
+import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import * as SecureStore from 'expo-secure-store';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 // Generate a consistent daily lucky number for the user
 const useDailyLuckyNumber = (userId: string): number => {
@@ -245,10 +246,20 @@ export default function HomeScreen() {
     getUserId();
   }, []);
   const { topNumbers, loading, error } = useNextDrawNumbers();
+  const { isSubscribed, isLoading: isSubscriptionLoading } = useSubscription();
   const SCREEN_WIDTH = Dimensions.get("window").width;
   const GRID_PADDING = 20 * 2; // container padding
   const GAP = 10;
   const CHIP_WIDTH = (SCREEN_WIDTH - GRID_PADDING - GAP * 3) / 4;
+
+  const handleViewAllPress = useCallback(() => {
+    if (isSubscribed) {
+      router.push({ pathname: "/(tabs)/home/view-all", params: { source: 'default' } });
+    } else {
+      // Navigate to subscription screen
+      router.push({ pathname: "/(tabs)/home/subscribe" });
+    }
+  }, [isSubscribed, router]);
 
   function ChipGrid({ data, onPressChip, onPressViewAll }: ChipGridProps) {
     return (
@@ -288,7 +299,7 @@ export default function HomeScreen() {
             { width: CHIP_WIDTH, alignItems: "center" },
           ]}
         >
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={styles.viewAllText}>{t('viewall')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -373,7 +384,7 @@ export default function HomeScreen() {
           <ChipGrid
             data={topNumbers}
             onPressChip={(item) => router.push(`/(tabs)/home/number-details?number=${item.number}`)}
-            onPressViewAll={() => router.push({ pathname: "/(tabs)/home/view-all", params: { source: 'default' } })}
+            onPressViewAll={handleViewAllPress}
           />
         )}
 

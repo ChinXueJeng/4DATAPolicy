@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from 'react-i18next';
 
 interface NumberHistory {
   id: number;
@@ -20,6 +21,7 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 export default function NumberDetailsScreen() {
   const router = useRouter();
@@ -82,17 +84,24 @@ export default function NumberDetailsScreen() {
     fetchData();
   }, [number]);
 
-  const getPrizeName = (prizeType: number) => {
-      switch (prizeType) {
-        case 1: return '1st Prize';
-        case 2: return '2nd Prize';
-        case 3: return '3rd Prize';
-        case 4: return 'Special';
-        case 5: return 'Consolation';
-        default: return prizeType.toString();
-      }
-    };
+  const { t } = useTranslation();
 
+  const getPrizeName = (prizeType: number) => {
+    switch (prizeType) {
+      case 1:
+        return t('prizeFirst');
+      case 2:
+        return t('prizeSecond');
+      case 3:
+        return t('prizeThird');
+      case 4:
+        return t('prizeSpecial');
+      case 5:
+        return t('prizeConsolation');
+      default:
+        return prizeType.toString();
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -123,7 +132,7 @@ export default function NumberDetailsScreen() {
           activeOpacity={0.7}
         >
           <MaterialIcons name="arrow-back" size={18} />
-          <Text style={styles.backText}>Back</Text>
+          <Text style={styles.backText}>{t('back')}</Text>
         </TouchableOpacity>
 
         {/* Number Card */}
@@ -140,22 +149,22 @@ export default function NumberDetailsScreen() {
         {/* Number History */}
         <View style={[styles.card, shadow]}>
           <Text style={[styles.cardTitle, { textAlign: "center" }]}>
-            Number History
+            {t('numberhistory')}
           </Text>
 
           {/* Table Header */}
           <View style={styles.tableHeader}>
             <View style={styles.logoCol} />
-            <Text style={styles.headerCell}>4D</Text>
-            <Text style={styles.headerCell}>Draw Date</Text>
-            <Text style={styles.headerCell}>Prize</Text>
+            <Text style={styles.headerCell}>{t('4D')}</Text>
+            <Text style={styles.headerCell}>{t('Draw Date')}</Text>
+            <Text style={styles.headerCell}>{t('Prize')}</Text>
           </View>
 
           {/* Rows */}
           {loading.history ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#0000ff" />
-              <Text style={styles.headerCell}>Loading history...</Text>
+              <Text style={styles.headerCell}>{t('LoadingHistory')}</Text>
             </View>
           ) : error ? (
             <View style={styles.loadingContainer}>
@@ -183,21 +192,21 @@ export default function NumberDetailsScreen() {
             ))
           ) : (
             <View style={styles.noDataContainer}>
-              <Text style={styles.noDataText}>No history found for this number</Text>
+              <Text style={styles.noDataText}>{t('numberhistory')}</Text>
             </View>
           )}
         </View>
 
         {/* Number Analysis */}
         <View style={[styles.card2, shadow]}>
-          <Text style={styles.cardTitle}>Number Analysis</Text>
+          <Text style={styles.cardTitle}>{t('numberAnalysis')}</Text>
           {description ? (
             <Text style={styles.analysisText}>
               {description}
             </Text>
           ) : (
             <Text style={styles.analysisText}>
-              No analysis available for this number.
+              {t('noanalysisavailable')}
             </Text>
           )}
         </View>

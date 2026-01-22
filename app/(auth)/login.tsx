@@ -12,11 +12,10 @@ const getRedirectUrl = () => {
     return window.location.origin;
   }
   // For mobile, use the deep link URL scheme
-  return 'magnum://';
+  return 'fourdata://';
 };
-import { supabase, signInWithGoogle, signInWithFacebook } from '@/lib/supabase';
+import { supabase, signInWithGoogle} from '@/lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as AuthSession from "expo-auth-session";
 
 
 export default function LoginScreen() {
@@ -29,21 +28,36 @@ export default function LoginScreen() {
       setLoading(true);
       
       if (type === 'email') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+        if (!email || !password) {
+          throw new Error('Please enter both email and password');
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim(),
         });
 
         if (error) {
+          // Handle specific error cases
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Invalid email or password');
+          } else if (error.message.includes('Email not confirmed')) {
+            throw new Error('Please verify your email before logging in');
+          } else {
           throw new Error(error.message);
         }
+        }
+
+        // Check if we have a valid session
+        if (data?.session) {
+          // Store the session in AsyncStorage for persistence
+          await AsyncStorage.setItem('supabase.auth.token', data.session.access_token);
         // Navigate to home on successful login
         router.replace('/(tabs)/home');
+        }
       } else if (type === 'google') {
         await signInWithGoogle();
-      } else if (type === 'facebook') {
-        await signInWithFacebook();
-      }
+      } 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred during login';
       Alert.alert('Error', errorMessage);
