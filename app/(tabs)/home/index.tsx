@@ -1,10 +1,21 @@
-
-import { useRouter, useFocusEffect } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import { useLanguage } from "@/app/contexts/LanguageContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/lib/supabase";
-import * as SecureStore from 'expo-secure-store';
-import { useLanguage } from '@/app/contexts/LanguageContext';
-import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Generate a consistent daily lucky number for the user
 const useDailyLuckyNumber = (userId: string): number => {
@@ -12,9 +23,8 @@ const useDailyLuckyNumber = (userId: string): number => {
   useEffect(() => {
     const generateLuckyNumber = async () => {
       try {
-
         // Ensure we have a valid userId
-        if (!userId || userId === 'default') {
+        if (!userId || userId === "default") {
           // Generate a temporary number if no user ID is available
           const tempNumber = Math.floor(1000 + Math.random() * 9000);
           setLuckyNumber(tempNumber);
@@ -22,30 +32,30 @@ const useDailyLuckyNumber = (userId: string): number => {
         }
 
         // Get today's date in YYYY-MM-DD format
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         const storageKey = `lucky_number_${userId}_${today}`;
-        
+
         // Try to get today's number from secure storage
         const storedNumber = await SecureStore.getItemAsync(storageKey);
-        
+
         if (storedNumber) {
           setLuckyNumber(parseInt(storedNumber, 10));
         } else {
           // Generate a new 4-digit number (1000-9999)
           const newNumber = Math.floor(1000 + Math.random() * 9000);
-          
+
           // Store the new number for today
           await SecureStore.setItemAsync(storageKey, newNumber.toString());
           setLuckyNumber(newNumber);
-          
+
           // Clear yesterday's number if it exists
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayKey = `lucky_number_${userId}_${yesterday.toISOString().split('T')[0]}`;
+          const yesterdayKey = `lucky_number_${userId}_${yesterday.toISOString().split("T")[0]}`;
           await SecureStore.deleteItemAsync(yesterdayKey);
         }
       } catch (error) {
-        console.error('Error generating lucky number:', error);
+        console.error("Error generating lucky number:", error);
         // Fallback to a default number
         setLuckyNumber(Math.floor(1000 + Math.random() * 9000));
       }
@@ -56,18 +66,6 @@ const useDailyLuckyNumber = (userId: string): number => {
 
   return luckyNumber;
 };
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Modal,
-  TouchableOpacity,
-  Dimensions,
-  Image,
-  TouchableWithoutFeedback,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 type NumberItem = {
   id: number;
@@ -95,70 +93,83 @@ const useNextDrawNumbers = () => {
     const fetchTopNumbers = async () => {
       try {
         setLoading(true);
-        console.log('🚀 Fetching numbers from Supabase...');
-        
+        console.log("🚀 Fetching numbers from Supabase...");
+
         // Fetch all data with prob >= 80
         const { data: allProbData, error: error90 } = await supabase
-          .from('nextDrawProb')
-          .select('number, prob')
-          .gte('prob', 85)
-          .lt('prob', 100);
+          .from("nextDrawProb")
+          .select("number, prob")
+          .gte("prob", 85)
+          .lt("prob", 100);
 
         // If data exists, randomly pick 20 items
-        const prob90 = allProbData ? 
-          allProbData
-            .sort(() => Math.random() - 0.5) // Shuffle array
-            .slice(0, 20) : 
-          null;
+        const prob90 = allProbData
+          ? allProbData
+              .sort(() => Math.random() - 0.5) // Shuffle array
+              .slice(0, 20)
+          : null;
 
         // Fetch 5 numbers with prob between 80 and 89
         const { data: allProbData2, error: error80 } = await supabase
-          .from('nextDrawProb')
-          .select('number, prob')
-          .gte('prob', 75)
-          .lt('prob', 85)
-        
-          // If data exists, randomly pick 20 items
-        const prob80 = allProbData2 ? 
-          allProbData2
-            .sort(() => Math.random() - 0.5) // Shuffle array
-            .slice(0, 12) : 
-          null;
-          
+          .from("nextDrawProb")
+          .select("number, prob")
+          .gte("prob", 75)
+          .lt("prob", 85);
+
+        // If data exists, randomly pick 20 items
+        const prob80 = allProbData2
+          ? allProbData2
+              .sort(() => Math.random() - 0.5) // Shuffle array
+              .slice(0, 12)
+          : null;
+
         // Fetch 5 numbers with prob between 70 and 79
         const { data: allProbData3, error: error70 } = await supabase
-          .from('nextDrawProb')
-          .select('number, prob')
-          .gte('prob', 60)
-          .lt('prob', 75)
+          .from("nextDrawProb")
+          .select("number, prob")
+          .gte("prob", 60)
+          .lt("prob", 75);
 
-          // If data exists, randomly pick 20 items
-        const prob70 = allProbData3 ? 
-          allProbData3
-            .sort(() => Math.random() - 0.5) // Shuffle array
-            .slice(0, 3) : 
-          null;
-          
+        // If data exists, randomly pick 20 items
+        const prob70 = allProbData3
+          ? allProbData3
+              .sort(() => Math.random() - 0.5) // Shuffle array
+              .slice(0, 3)
+          : null;
+
         if (error90 || error80 || error70) throw error90 || error80 || error70;
 
         // Combine all results
         const allNumbers = [
-          ...(prob90 || []).map((item: NextDrawProb) => ({ ...item, color: 'green' as const })),
-          ...(prob80 || []).map((item: NextDrawProb) => ({ ...item, color: 'lightGreen' as const })),
-          ...(prob70 || []).map((item: NextDrawProb) => ({ ...item, color: 'yellow' as const }))
+          ...(prob90 || []).map((item: NextDrawProb) => ({
+            ...item,
+            color: "green" as const,
+          })),
+          ...(prob80 || []).map((item: NextDrawProb) => ({
+            ...item,
+            color: "lightGreen" as const,
+          })),
+          ...(prob70 || []).map((item: NextDrawProb) => ({
+            ...item,
+            color: "yellow" as const,
+          })),
         ];
 
         // Add unique IDs and format the data
-        const formattedNumbers: NumberItem[] = allNumbers.map((item, index) => ({
-          id: index + 1,
-          number: item.number,
-          color: item.color
-        }));
+        const formattedNumbers: NumberItem[] = allNumbers.map(
+          (item, index) => ({
+            id: index + 1,
+            number: item.number,
+            color: item.color,
+          }),
+        );
 
         setTopNumbers(formattedNumbers);
       } catch (err) {
-        console.error('Error fetching next draw numbers:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch numbers');
+        console.error("Error fetching next draw numbers:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch numbers",
+        );
       } finally {
         setLoading(false);
       }
@@ -170,46 +181,51 @@ const useNextDrawNumbers = () => {
   return { topNumbers, loading, error };
 };
 
-
-
 const useNextDrawDate = () => {
-  const [nextDrawDate, setNextDrawDate] = useState<string>('');
+  const [nextDrawDate, setNextDrawDate] = useState<string>("");
   useEffect(() => {
     const fetchNextDrawDate = async () => {
       try {
         const now = new Date();
         const currentHour = now.getHours();
-        const today = now.toISOString().split('T')[0];
-        
+        const today = now.toISOString().split("T")[0];
+
         // If it's before 9 PM, check for today's draw
         // If it's after 9 PM, check from tomorrow
-        const startDate = currentHour < 21 ? today : new Date(now.setDate(now.getDate() + 1)).toISOString().split('T')[0];
+        const startDate =
+          currentHour < 21
+            ? today
+            : new Date(now.setDate(now.getDate() + 1))
+                .toISOString()
+                .split("T")[0];
         const { data, error } = await supabase
-          .from('lotterydate')
-          .select('date')
-          .gte('date', startDate)
-          .order('date', { ascending: true })
+          .from("lotterydate")
+          .select("date")
+          .gte("date", startDate)
+          .order("date", { ascending: true })
           .limit(1);
         if (error) throw error;
-        
+
         if (data && data.length > 0) {
           const date = new Date(data[0].date);
           // If the date is today and it's before 9 PM, show "Today"
           if (data[0].date === today && currentHour < 21) {
-            setNextDrawDate('Today');
+            setNextDrawDate("Today");
           } else {
-            setNextDrawDate(date.toLocaleDateString('en-US', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            }));
+            setNextDrawDate(
+              date.toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }),
+            );
           }
         } else {
-          setNextDrawDate('No upcoming draws');
+          setNextDrawDate("No upcoming draws");
         }
       } catch (error) {
-        console.error('Error:', error);
-        setNextDrawDate('Error loading date');
+        console.error("Error:", error);
+        setNextDrawDate("Error loading date");
       }
     };
     fetchNextDrawDate();
@@ -220,9 +236,9 @@ const useNextDrawDate = () => {
 export default function HomeScreen() {
   const router = useRouter();
   // Get the user's ID from Supabase auth
-  const [userId, setUserId] = useState('default');
+  const [userId, setUserId] = useState("default");
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alertMessage, setAlertMessage] = useState("");
   const luckyNumber = useDailyLuckyNumber(userId);
   const nextDrawDate = useNextDrawDate();
   const { t } = useLanguage();
@@ -238,7 +254,9 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
       }
@@ -254,10 +272,13 @@ export default function HomeScreen() {
 
   const handleViewAllPress = useCallback(() => {
     if (isSubscribed) {
-      router.push({ pathname: "/(tabs)/home/view-all", params: { source: 'default' } });
+      router.push({
+        pathname: "/(tabs)/home/view-all",
+        params: { source: "default" },
+      });
     } else {
       // Navigate to subscription screen
-      router.push({ pathname: "/(tabs)/home/subscribe" });
+      router.push({ pathname: "/paywall" });
     }
   }, [isSubscribed, router]);
 
@@ -279,8 +300,8 @@ export default function HomeScreen() {
                 item.color === "yellow"
                   ? styles.chipYellow
                   : item.color === "lightGreen"
-                  ? styles.chipLightGreen
-                  : styles.chipGreen,
+                    ? styles.chipLightGreen
+                    : styles.chipGreen,
               ]}
             >
               <Text style={styles.chipText}>{item.number}</Text>
@@ -299,7 +320,7 @@ export default function HomeScreen() {
             { width: CHIP_WIDTH, alignItems: "center" },
           ]}
         >
-          <Text style={styles.viewAllText}>{t('viewall')}</Text>
+          <Text style={styles.viewAllText}>{t("viewall")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -325,8 +346,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.imageContainer}>
-            <TouchableOpacity 
-              onPress={() => showCustomAlert(t('comingsoon'))}>
+            <TouchableOpacity onPress={() => showCustomAlert(t("comingsoon"))}>
               <Image
                 source={require("@/assets/images/magnumLOGO.png")}
                 style={{ height: 50, width: 50, borderRadius: 10 }}
@@ -336,23 +356,44 @@ export default function HomeScreen() {
               source={require("@/assets/images/TotoLOGO.png")}
               style={{ height: 50, width: 50, borderRadius: 10 }}
             />
-            </View>
-          <View>
-            <Text style={styles.subText}>{t('nextDraw')}</Text>
-            <Text style={styles.title}>{nextDrawDate || 'Loading...'}</Text>
           </View>
-          
+          <View>
+            <Text style={styles.subText}>{t("nextDraw")}</Text>
+            <Text style={styles.title}>{nextDrawDate || "Loading..."}</Text>
+          </View>
         </View>
 
         {/* Lucky Number * Upset Level*/}
         <View style={styles.secondheader}>
           <View style={[styles.upsetBox, strongShadow]}>
-            <Text style={[styles.luckyText, { marginBottom: 4 }]}>{t('select')}</Text>
-            <Text style={{ color: "#fff", fontSize: 21, fontWeight: "bold", textAlign: "center" }}>TOTO</Text>
+            <Text style={[styles.luckyText, { marginBottom: 4 }]}>
+              {t("select")}
+            </Text>
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 21,
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+            >
+              TOTO
+            </Text>
           </View>
           <View style={[styles.luckyBox, strongShadow]}>
-            <Text style={[styles.luckyText, { marginBottom: 4 }]}>{t('yourluckynumber')}</Text>
-            <Text style={{ color: "#fff", fontSize: 23, fontWeight: "bold", textAlign: "center" }}>{luckyNumber}</Text>
+            <Text style={[styles.luckyText, { marginBottom: 4 }]}>
+              {t("yourluckynumber")}
+            </Text>
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 23,
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+            >
+              {luckyNumber}
+            </Text>
           </View>
         </View>
 
@@ -369,12 +410,12 @@ export default function HomeScreen() {
           ]}
         >
           <Text style={{ fontSize: 20, textAlign: "center" }}>
-  {t('highProbabilityNumbers')}
-</Text>
+            {t("highProbabilityNumbers")}
+          </Text>
         </View>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text>{t('loadingnum')}</Text>
+            <Text>{t("loadingnum")}</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
@@ -383,12 +424,13 @@ export default function HomeScreen() {
         ) : (
           <ChipGrid
             data={topNumbers}
-            onPressChip={(item) => router.push(`/(tabs)/home/number-details?number=${item.number}`)}
+            onPressChip={(item) =>
+              router.push(`/(tabs)/home/number-details?number=${item.number}`)
+            }
             onPressViewAll={handleViewAllPress}
           />
         )}
 
-        
         {/* bottom spacing for tab bar */}
         <View style={{ height: 120 }} />
       </ScrollView>
@@ -406,24 +448,24 @@ const strongShadow = {
 
 const styles = StyleSheet.create({
   modalOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   alertContainer: {
-    position: 'absolute',
-    top: '40%',
-    left: '10%',
-    right: '10%',
-    backgroundColor: 'white',
+    position: "absolute",
+    top: "40%",
+    left: "10%",
+    right: "10%",
+    backgroundColor: "white",
     borderRadius: 15,
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -434,35 +476,35 @@ const styles = StyleSheet.create({
   },
   alertText: {
     fontSize: 16,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorText: {
-    color: 'red',
-    textAlign: 'center',
+    color: "red",
+    textAlign: "center",
   },
   container: {
-   flex: 1,
-  backgroundColor: "#EEF3F9",
-  padding: 16,
+    flex: 1,
+    backgroundColor: "#EEF3F9",
+    padding: 16,
   },
 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
   secondheader: {
@@ -515,7 +557,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     textAlign: "center",
-  lineHeight: 20, // Ensure proper line height
+    lineHeight: 20, // Ensure proper line height
   },
 
   card: {
@@ -591,8 +633,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   imageContainer: {
-  flexDirection: "row",     // Keep images in a row
-  alignItems: "center",     // Center images vertically
-  gap: 10,                  // Add some space between images
-},
+    flexDirection: "row", // Keep images in a row
+    alignItems: "center", // Center images vertically
+    gap: 10, // Add some space between images
+  },
 });

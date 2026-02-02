@@ -1,19 +1,23 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { initI18n } from '@/i18n';
-import { LanguageProvider } from '@/app/contexts/LanguageContext';
-import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
+import { LanguageProvider } from "@/app/contexts/LanguageContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { initI18n } from "@/i18n";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import "react-native-reanimated";
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: "(tabs)",
 };
 
-function RootLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [i18nInitialized, setI18nInitialized] = useState(false);
 
@@ -23,7 +27,7 @@ function RootLayout() {
         await initI18n();
         setI18nInitialized(true);
       } catch (error) {
-        console.error('Failed to initialize i18n:', error);
+        console.error("Failed to initialize i18n:", error);
         setI18nInitialized(true); // Continue even if i18n fails
       }
     };
@@ -33,7 +37,7 @@ function RootLayout() {
 
   if (!i18nInitialized) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -42,10 +46,15 @@ function RootLayout() {
   return (
     <LanguageProvider>
       <SubscriptionProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="subscription" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="subscription"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
@@ -54,8 +63,4 @@ function RootLayout() {
       </SubscriptionProvider>
     </LanguageProvider>
   );
-}
-
-export default function App() {
-  return <RootLayout />;
 }

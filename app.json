@@ -16,7 +16,7 @@
       }
     },
     "android": {
-      "package": "com.4Data.app",
+      "package": "com.fourdata.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
