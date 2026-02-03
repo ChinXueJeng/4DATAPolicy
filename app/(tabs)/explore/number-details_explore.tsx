@@ -26,7 +26,7 @@ export default function NumberDetailsScreen() {
   const router = useRouter();
   const { number, fromExplore } = useLocalSearchParams<{ number: string; fromExplore?: string }>();
   const [probability, setProbability] = useState<number | null>(null);
-  const [description, setDescription] = useState<string>('');
+  const [descriptions, setDescriptions] = useState<{desc?: string, descCN?: string}>({});
   const [history, setHistory] = useState<NumberHistory[]>([]);
   const [loading, setLoading] = useState({
     probability: true,
@@ -43,7 +43,7 @@ export default function NumberDetailsScreen() {
         const [probResult, historyResult] = await Promise.all([
           supabase
             .from('nextDrawProb')
-            .select('prob, desc')
+            .select('prob, desc, descCN')
             .eq('number', number)
             .single(),
           
@@ -60,7 +60,10 @@ export default function NumberDetailsScreen() {
         
         if (probResult.data) {
           setProbability(probResult.data.prob);
-          setDescription(probResult.data.desc || '');
+          setDescriptions({
+            desc: probResult.data.desc || '',
+            descCN: probResult.data.descCN || probResult.data.desc || ''
+          });
         }
         
         if (historyResult.data) {
@@ -83,7 +86,7 @@ export default function NumberDetailsScreen() {
     fetchData();
   }, [number]);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const getPrizeName = (prizeType: number) => {
     switch (prizeType) {
@@ -183,7 +186,7 @@ export default function NumberDetailsScreen() {
                 <View style={styles.logoCol}>
                   <Image 
                     source={require("@/assets/images/TotoLOGO.png")} 
-                    style={{ height: 40, width: 40, borderRadius: 10 }}
+                    style={{ height: 80, width: 80, borderRadius: 10 }}
                   />
                 </View>
                 <Text style={styles.cell}>{item.number}</Text>
@@ -201,9 +204,9 @@ export default function NumberDetailsScreen() {
         {/* Number Analysis */}
         <View style={[styles.card2, shadow]}>
           <Text style={styles.cardTitle}>{t('numberAnalysis')}</Text>
-          {description ? (
+          {descriptions.desc || descriptions.descCN ? (
             <Text style={styles.analysisText}>
-              {description}
+              {i18n.language.startsWith('zh') ? (descriptions.descCN || descriptions.desc) : (descriptions.desc || descriptions.descCN)}
             </Text>
           ) : (
             <Text style={styles.analysisText}>

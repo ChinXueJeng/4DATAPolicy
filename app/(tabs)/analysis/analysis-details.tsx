@@ -166,7 +166,7 @@ export default function AnalysisDetails() {
         </View>
         <View style={[{ backgroundColor: "#fff", borderRadius: 10 },shadow]}>
           {/* Special Prize */}
-          <Section title="Special Prize">
+          <Section title={t('Special_Prize')}>
             {specialPrizes.length > 0 ? (
               specialPrizes.map((item, i) => {
                 const points = item.total_points;
@@ -192,7 +192,7 @@ export default function AnalysisDetails() {
           </Section>
 
           {/* Consolation Prize */}
-          <Section title="Consolation Prize">
+          <Section title={t('Consolation_Prize')}>
             {consolationPrizes.length > 0 ? (
               consolationPrizes.map((item, i) => {
                 const points = item.total_points;

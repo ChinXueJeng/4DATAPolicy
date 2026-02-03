@@ -71,7 +71,7 @@ export default function ProfileScreen() {
           onPress={() => changeLanguage(currentLanguage === "zh" ? "en" : "zh")}
         />
         <ProfileRow
-          title={"Become a Premium Member"}
+          title={t("Become a premium member")}
           onPress={() => router.push("/paywall")}
         />
         {/* Logout */}
