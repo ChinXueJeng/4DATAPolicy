@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,24 +13,64 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const RECENT_SEARCHES_KEY = '@recent_searches';
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [recent, setRecent] = useState(["3933"]);
+  const [recent, setRecent] = useState<string[]>([]);
   const { t } = useLanguage();
 
-  const removeItem = (index: number) => {
-    setRecent((prev) => prev.filter((_, i) => i !== index));
+  // Load recent searches from storage on component mount
+  useEffect(() => {
+    const loadRecentSearches = async () => {
+      try {
+        const storedSearches = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+        if (storedSearches) {
+          setRecent(JSON.parse(storedSearches));
+        }
+      } catch (error) {
+        console.error('Error loading recent searches:', error);
+      }
+    };
+    loadRecentSearches();
+  }, []);
+
+  // Save recent searches to storage whenever it changes
+  const saveRecentSearches = async (searches: string[]) => {
+    try {
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+    } catch (error) {
+      console.error('Error saving recent searches:', error);
+    }
   };
 
-  const handleSearch = () => {
+  const removeItem = async (index: number) => {
+    const newRecent = recent.filter((_, i) => i !== index);
+    setRecent(newRecent);
+    await saveRecentSearches(newRecent);
+  };
+
+  const clearAll = async () => {
+    setRecent([]);
+    await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+  };
+
+  const handleSearch = async () => {
     if (search.length === 4) {
-      // Add to recent searches if not already in the list
-      if (!recent.includes(search)) {
-        setRecent(prev => [search, ...prev].slice(0, 4)); // Keep only 4 most recent
-      }
+      // Create new recent searches array with the new search term at the beginning
+      const newRecent = [
+        search,
+        ...recent.filter(item => item !== search) // Remove duplicate if it exists
+      ].slice(0, 4); // Keep only 4 most recent
+      
+      // Update state and save to storage
+      setRecent(newRecent);
+      await saveRecentSearches(newRecent);
+      
       // Navigate to number details with source parameter
       router.push({
         pathname: '/(tabs)/explore/number-details_explore',
@@ -78,7 +117,7 @@ export default function ExploreScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.recentText}>{t('recent')}</Text>
-            <TouchableOpacity onPress={() => setRecent([])}>
+            <TouchableOpacity onPress={clearAll}>
               <Text style={styles.clear}>{t('clearall')}</Text>
             </TouchableOpacity>
           </View>

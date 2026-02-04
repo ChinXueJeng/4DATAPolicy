@@ -62,7 +62,7 @@ export default function NumberDetailsScreen() {
           setProbability(probResult.data.prob);
           setDescriptions({
             desc: probResult.data.desc || '',
-            descCN: probResult.data.descCN || probResult.data.desc || ''
+            descCN: probResult.data.descCN || ''
           });
         }
         
@@ -186,7 +186,7 @@ export default function NumberDetailsScreen() {
                 <View style={styles.logoCol}>
                   <Image 
                     source={require("@/assets/images/TotoLOGO.png")} 
-                    style={{ height: 80, width: 80, borderRadius: 10 }}
+                    style={{ height:40, width: 40, borderRadius: 10 }}
                   />
                 </View>
                 <Text style={styles.cell}>{item.number}</Text>

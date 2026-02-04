@@ -99,7 +99,7 @@ const useNextDrawNumbers = () => {
         const { data: allProbData, error: error90 } = await supabase
           .from("nextDrawProb")
           .select("number, prob")
-          .gte("prob", 85)
+          .gte("prob", 90)
           .lt("prob", 100);
 
         // If data exists, randomly pick 20 items
@@ -114,7 +114,7 @@ const useNextDrawNumbers = () => {
           .from("nextDrawProb")
           .select("number, prob")
           .gte("prob", 75)
-          .lt("prob", 85);
+          .lt("prob", 90);
 
         // If data exists, randomly pick 20 items
         const prob80 = allProbData2
@@ -182,7 +182,27 @@ const useNextDrawNumbers = () => {
 };
 
 const useNextDrawDate = () => {
-  const [nextDrawDate, setNextDrawDate] = useState<string>("");
+  const [nextDrawDate, setNextDrawDate] = useState("");
+  const { currentLanguage } = useLanguage();
+
+  // Get localized date format based on language
+  const getLocalizedDate = (date: Date) => {
+    if (currentLanguage === 'zh') {
+      // Chinese date format: YYYY年M月D日
+      return new Intl.DateTimeFormat('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(date);
+    }
+    // Default to English format: Month Day, Year
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  };
+
   useEffect(() => {
     const fetchNextDrawDate = async () => {
       try {
@@ -208,18 +228,8 @@ const useNextDrawDate = () => {
 
         if (data && data.length > 0) {
           const date = new Date(data[0].date);
-          // If the date is today and it's before 9 PM, show "Today"
-          if (data[0].date === today && currentHour < 21) {
-            setNextDrawDate("Today");
-          } else {
-            setNextDrawDate(
-              date.toLocaleDateString("en-US", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }),
-            );
-          }
+          // Show the date in user's preferred language
+          setNextDrawDate(getLocalizedDate(date));
         } else {
           setNextDrawDate("No upcoming draws");
         }
@@ -229,7 +239,7 @@ const useNextDrawDate = () => {
       }
     };
     fetchNextDrawDate();
-  }, []);
+  }, [currentLanguage]); // Add currentLanguage to the dependency array
   return nextDrawDate;
 };
 
