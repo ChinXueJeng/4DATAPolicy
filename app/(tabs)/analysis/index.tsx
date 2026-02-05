@@ -26,7 +26,26 @@ export default function AnalysisScreen() {
   const [results, setResults] = useState<Record<string, LotteryResult[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+
+  // Function to format date based on current language
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (currentLanguage === 'zh') {
+      // Chinese date format: YYYY年M月D日
+      return new Intl.DateTimeFormat('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(date);
+    }
+    // Default to English format: Month Day, Year
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  };
 
   const handleCardPress = (date: string) => {
     // Format the date to YYYY-MM-DD for the URL
@@ -49,11 +68,7 @@ export default function AnalysisScreen() {
         if (fetchError) throw fetchError;
         // Group results by date
         const groupedResults = data.reduce((acc: Record<string, LotteryResult[]>, item) => {
-          const date = new Date(item.draw_date).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-          });
+          const date = formatDate(item.draw_date);
           
           if (!acc[date]) {
             acc[date] = [];

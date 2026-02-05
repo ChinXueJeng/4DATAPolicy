@@ -70,8 +70,8 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
-      
+      <Text style={styles.title}>Welcome To 4Data</Text>
+      <Text style={styles.para}>Check High probability 4D numbers and detailed information easily!</Text>
       <View style={styles.form}>
         <TextInput
           style={styles.input}
@@ -141,17 +141,7 @@ export default function LoginScreen() {
             <Text style={[styles.buttonText, {color: '#007AFF'}]}>Skip for now</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={[styles.button, styles.skipButton]}
-            onPress={async () => {
-              // Set a flag in local storage to indicate bypassed login
-              await AsyncStorage.setItem('bypassedLogin', 'true');
-              router.replace('/(tabs)/home');
-            }}
-            disabled={loading}
-          >
-            <Text style={[styles.buttonText, {color: '#007AFF'}]}>Skip Login (Bypass)</Text>
-          </TouchableOpacity>
+          
         </View>
       </View>
     </View>
@@ -167,15 +157,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginBottom: 15,
     textAlign: 'center',
     color: '#333',
+  },
+  para: {
+    fontSize: 16,
+    marginBottom: 30,
+    textAlign: 'center',
+    lineHeight: 24,
+    color: '#a8a7a7ff',
   },
   form: {
     width: '100%',
   },
   input: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f7f7f7ff',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,

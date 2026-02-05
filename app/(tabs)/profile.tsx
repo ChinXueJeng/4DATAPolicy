@@ -29,16 +29,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-      {/* Back */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={[styles.backBtn, shadow]}
-        activeOpacity={0.7}
-      >
-        <MaterialIcons name="arrow-back" size={18} />
-        <Text style={styles.backText}>{t("back")}</Text>
-      </TouchableOpacity>
+    <View style={[styles.container, { paddingTop: insets.top + 25 }]}>
 
       {/* Card */}
       <View style={styles.card}>
@@ -786,6 +777,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 50, // Add padding to prevent content from going under the status bar
   },
+ 
   modalBackButton: {
     position: "absolute",
     top: 50,
@@ -793,8 +785,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
     backgroundColor: "rgba(255, 255, 255, 1.0)",
     borderRadius: 20,
-    width: 40,
-    height: 40,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     justifyContent: "center",
     alignItems: "center",
     ...shadow,

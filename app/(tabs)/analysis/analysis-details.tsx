@@ -29,7 +29,26 @@ export default function AnalysisDetails() {
   const [consolationPrizes, setConsolationPrizes] = useState<Array<{number: string, total_points: number | null}>>([]);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+
+  // Function to format date based on current language
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (currentLanguage === 'zh') {
+      // Chinese date format: YYYY年M月D日
+      return new Intl.DateTimeFormat('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(date);
+    }
+    // Default to English format: Month Day, Year
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  };
 
   useEffect(() => {
     const fetchWinners = async () => {
@@ -118,6 +137,7 @@ export default function AnalysisDetails() {
   <TouchableOpacity 
     style={[styles.backBtn, shadow]} 
     onPress={() => router.push('/(tabs)/analysis')}
+    activeOpacity={0.7}
   >
     <Ionicons name="arrow-back" size={16} />
     <Text style={styles.backText}>{t('back')}</Text>
@@ -129,11 +149,7 @@ export default function AnalysisDetails() {
       >
         {/* Date */}
         <Text style={styles.date}>
-          {date ? new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }) : 'No date selected'}
+          {date ? formatDate(date) : 'N/A'}
         </Text>
 
         {/* Top Winners */}
