@@ -130,6 +130,60 @@ if (typeof window !== "undefined") {
 }
 
 // Helper function to handle Google OAuth sign in
+// export const signInWithApple = async () => {
+//   try {
+//     const credential = await AppleAuthentication.signInAsync({
+//       requestedScopes: [
+//         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+//         AppleAuthentication.AppleAuthenticationScope.EMAIL,
+
+//       ],
+//       nonce: Math.random().toString(36).substring(2, 15), // Generate a random nonce
+//     });
+//     console.log("Apple sign in credential:", credential);
+//     // Sign in via Supabase Auth.
+//     if (credential.identityToken) {
+//       const {
+//         error,
+//         data: { user },
+//       } = await supabase.auth.signInWithIdToken({
+//         provider: "apple",
+//         token: credential.identityToken,
+//         access_token: credential.authorizationCode as string,
+//       });
+//       console.log(JSON.stringify({ error, user }, null, 2));
+//       if (!error) {
+//         // Apple only provides the user's full name on the first sign-in
+//         // Save it to user metadata if available
+//         if (credential.fullName) {
+//           const nameParts = [];
+//           if (credential.fullName.givenName)
+//             nameParts.push(credential.fullName.givenName);
+//           if (credential.fullName.middleName)
+//             nameParts.push(credential.fullName.middleName);
+//           if (credential.fullName.familyName)
+//             nameParts.push(credential.fullName.familyName);
+//           const fullName = nameParts.join(" ");
+//           await supabase.auth.updateUser({
+//             data: {
+//               full_name: fullName,
+//               given_name: credential.fullName.givenName,
+//               family_name: credential.fullName.familyName,
+//             },
+//           });
+//           const { data: sessionData, error: sessionError } =
+//             await supabase.auth.getSession();
+//           return sessionData;
+//         }
+//         // User is signed in.
+//       }
+//     } else {
+//       throw new Error("No identityToken.");
+//     }
+//   } catch (e) {
+//     console.error("Error during Apple sign in:", e);
+//   }
+// };
 export const signInWithApple = async () => {
   try {
     const credential = await AppleAuthentication.signInAsync({
@@ -138,47 +192,42 @@ export const signInWithApple = async () => {
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
     });
-    console.log("Apple sign in credential:", credential);
-    // Sign in via Supabase Auth.
+
     if (credential.identityToken) {
-      const {
-        error,
-        data: { user },
-      } = await supabase.auth.signInWithIdToken({
+      // Use the identity token to sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithIdToken({
         provider: "apple",
         token: credential.identityToken,
+        // Optional: You can also pass the nonce if you generate and use one
+        // nonce: rawNonce,
       });
-      console.log(JSON.stringify({ error, user }, null, 2));
-      if (!error) {
-        // Apple only provides the user's full name on the first sign-in
-        // Save it to user metadata if available
-        if (credential.fullName) {
-          const nameParts = [];
-          if (credential.fullName.givenName)
-            nameParts.push(credential.fullName.givenName);
-          if (credential.fullName.middleName)
-            nameParts.push(credential.fullName.middleName);
-          if (credential.fullName.familyName)
-            nameParts.push(credential.fullName.familyName);
-          const fullName = nameParts.join(" ");
-          await supabase.auth.updateUser({
-            data: {
-              full_name: fullName,
-              given_name: credential.fullName.givenName,
-              family_name: credential.fullName.familyName,
-            },
-          });
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.getSession();
-          return sessionData;
-        }
-        // User is signed in.
+
+      if (error) throw error;
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+      if (sessionData?.session) {
+        // Store the session in AsyncStorage for persistence
+        await AsyncStorage.setItem(
+          "supabase.auth.token",
+          sessionData.session.access_token,
+        );
+        // Navigate to home on successful login
+        router.replace("/(tabs)/home");
       }
+      console.log("Signed in successfully:", data);
+      // Handle navigation or state updates upon success
     } else {
-      throw new Error("No identityToken.");
+      throw new Error("No identity token received");
     }
   } catch (e) {
-    console.error("Error during Apple sign in:", e);
+    if (e.code === "ERR_APPLE_SIGN_IN_REQUEST") {
+      console.log("Apple Sign-In cancelled or failed:", e.message);
+    } else {
+      console.error(
+        "An unexpected error occurred during Apple Sign-In:",
+        e.message,
+      );
+    }
   }
 };
 export const signInWithGoogle = async () => {

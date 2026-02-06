@@ -160,15 +160,6 @@ export default function LoginScreen() {
               Create Account
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.replace({ pathname: "/(tabs)/home" })}
-            disabled={loading}
-          >
-            <Text style={[styles.buttonText, { color: "#007AFF" }]}>
-              Skip for now
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </View>
