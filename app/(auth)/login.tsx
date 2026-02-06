@@ -1,35 +1,41 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
-import { useState, useEffect } from 'react';
-import { router } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as WebBrowser from 'expo-web-browser';
+import { signInWithApple, signInWithGoogle, supabase } from "@/lib/supabase";
+import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-WebBrowser.maybeCompleteAuthSession();
-
-// Helper function to get the correct redirect URL based on platform
 const getRedirectUrl = () => {
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     return window.location.origin;
   }
   // For mobile, use the deep link URL scheme
-  return 'fourdata://';
+  return "fourdata://";
 };
-import { supabase, signInWithGoogle} from '@/lib/supabase';
-import { MaterialIcons } from '@expo/vector-icons';
-
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (type: 'email' | 'google' | 'facebook') => {
+  const handleLogin = async (
+    type: "email" | "google" | "facebook" | "apple",
+  ) => {
     try {
       setLoading(true);
-      
-      if (type === 'email') {
+
+      if (type === "email") {
         if (!email || !password) {
-          throw new Error('Please enter both email and password');
+          throw new Error("Please enter both email and password");
         }
 
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -39,39 +45,48 @@ export default function LoginScreen() {
 
         if (error) {
           // Handle specific error cases
-          if (error.message.includes('Invalid login credentials')) {
-            throw new Error('Invalid email or password');
-          } else if (error.message.includes('Email not confirmed')) {
-            throw new Error('Please verify your email before logging in');
+          if (error.message.includes("Invalid login credentials")) {
+            throw new Error("Invalid email or password");
+          } else if (error.message.includes("Email not confirmed")) {
+            throw new Error("Please verify your email before logging in");
           } else {
-          throw new Error(error.message);
-        }
+            throw new Error(error.message);
+          }
         }
 
         // Check if we have a valid session
         if (data?.session) {
           // Store the session in AsyncStorage for persistence
-          await AsyncStorage.setItem('supabase.auth.token', data.session.access_token);
-        // Navigate to home on successful login
-        router.replace('/(tabs)/home');
+          await AsyncStorage.setItem(
+            "supabase.auth.token",
+            data.session.access_token,
+          );
+          // Navigate to home on successful login
+          router.replace("/(tabs)/home");
         }
-      } else if (type === 'google') {
+      } else if (type === "google") {
         await signInWithGoogle();
-      } 
+      }
+      if (type === "apple") {
+        await signInWithApple();
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred during login';
-      Alert.alert('Error', errorMessage);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during login";
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome To 4Data</Text>
-      <Text style={styles.para}>Check High probability 4D numbers and detailed information easily!</Text>
+      <Text style={styles.para}>
+        Check High probability 4D numbers and detailed information easily!
+      </Text>
       <View style={styles.form}>
         <TextInput
           style={styles.input}
@@ -81,7 +96,7 @@ export default function LoginScreen() {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -89,10 +104,10 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           secureTextEntry
         />
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.button, styles.emailButton]}
-          onPress={() => handleLogin('email')}
+          onPress={() => handleLogin("email")}
           disabled={loading}
         >
           {loading ? (
@@ -101,47 +116,59 @@ export default function LoginScreen() {
             <Text style={styles.buttonText}>Sign In with Email</Text>
           )}
         </TouchableOpacity>
-        
+
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>OR</Text>
           <View style={styles.dividerLine} />
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.button, styles.googleButton]}
-          onPress={() => handleLogin('google')}
+          onPress={() => handleLogin("google")}
           disabled={loading}
         >
-          <MaterialIcons name="language" size={20} color="#fff" style={styles.icon} />
+          <MaterialIcons
+            name="language"
+            size={20}
+            color="#fff"
+            style={styles.icon}
+          />
           <Text style={styles.buttonText}>Continue with Google</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.button, styles.facebookButton]}
-          onPress={() => handleLogin('facebook')}
+
+        <TouchableOpacity
+          style={[styles.button, styles.appleButton]}
+          onPress={() => handleLogin("apple")}
           disabled={loading}
         >
-          <MaterialIcons name="facebook" size={20} color="#fff" style={styles.icon} />
-          <Text style={styles.buttonText}>Continue with Facebook</Text>
+          <MaterialIcons
+            name="apple"
+            size={20}
+            color="#fff"
+            style={styles.icon}
+          />
+          <Text style={styles.buttonText}>Continue with Apple</Text>
         </TouchableOpacity>
         <View style={styles.footerContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.button, styles.button]}
-            onPress={() => router.push({ pathname: '/(auth)/register' as any })}
+            onPress={() => router.push({ pathname: "/(auth)/register" as any })}
             disabled={loading}
           >
-            <Text style={[styles.buttonText, {color: '#007AFF'}]}>Create Account</Text>
+            <Text style={[styles.buttonText, { color: "#007AFF" }]}>
+              Create Account
+            </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            onPress={() => router.replace({ pathname: '/(tabs)/home' })}
+
+          <TouchableOpacity
+            onPress={() => router.replace({ pathname: "/(tabs)/home" })}
             disabled={loading}
           >
-            <Text style={[styles.buttonText, {color: '#007AFF'}]}>Skip for now</Text>
+            <Text style={[styles.buttonText, { color: "#007AFF" }]}>
+              Skip for now
+            </Text>
           </TouchableOpacity>
-          
-          
         </View>
       </View>
     </View>
@@ -150,84 +177,84 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
   },
   para: {
     fontSize: 16,
     marginBottom: 30,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
-    color: '#a8a7a7ff',
+    color: "#a8a7a7ff",
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   input: {
-    backgroundColor: '#f7f7f7ff',
+    backgroundColor: "#f7f7f7ff",
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
     fontSize: 16,
   },
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
   },
   emailButton: {
-    backgroundColor: '#1E5BFF',
+    backgroundColor: "#1E5BFF",
   },
   googleButton: {
-    backgroundColor: '#DB4437',
+    backgroundColor: "#DB4437",
   },
-  facebookButton: {
-    backgroundColor: '#3b5998',
+  appleButton: {
+    backgroundColor: "#000000",
     marginTop: 12,
   },
   skipButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: '#1E5BFF',
+    borderColor: "#1E5BFF",
     marginTop: 10,
-    width: '100%',
+    width: "100%",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
   },
   dividerText: {
     marginHorizontal: 10,
-    color: '#666',
+    color: "#666",
   },
   icon: {
     marginRight: 10,
   },
   footerContainer: {
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
 });

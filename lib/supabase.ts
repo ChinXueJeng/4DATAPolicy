@@ -1,7 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { createClient } from "@supabase/supabase-js";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { makeRedirectUri } from "expo-auth-session";
+import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import "react-native-url-polyfill/auto";
@@ -136,6 +138,7 @@ export const signInWithApple = async () => {
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
     });
+    console.log("Apple sign in credential:", credential);
     // Sign in via Supabase Auth.
     if (credential.identityToken) {
       const {
@@ -165,6 +168,9 @@ export const signInWithApple = async () => {
               family_name: credential.fullName.familyName,
             },
           });
+          const { data: sessionData, error: sessionError } =
+            await supabase.auth.getSession();
+          return sessionData;
         }
         // User is signed in.
       }
@@ -172,60 +178,33 @@ export const signInWithApple = async () => {
       throw new Error("No identityToken.");
     }
   } catch (e) {
-    if (e.code === "ERR_REQUEST_CANCELED") {
-      // handle that the user canceled the sign-in flow
-    } else {
-      // handle other errors
-    }
+    console.error("Error during Apple sign in:", e);
   }
 };
 export const signInWithGoogle = async () => {
   try {
-    try {
-      const response = await GoogleSignin.signIn();
+    const response = await GoogleSignin.signIn();
 
-      if (response.data?.idToken) {
-        const { data, error } = await supabase.auth.signInWithIdToken({
-          provider: "google",
-          token: response.data.idToken,
-        });
-        console.log("google sign in", error, data);
-      }
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession();
-      return sessionData;
-    } catch (error: any) {
-      if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (e.g. sign in) is in progress already
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
-      } else {
-        // some other error happened
-      }
-
-      // Open the auth URL in the browser
-
-      // const url = new URL(result.url);
-      // const params = new URLSearchParams(url.hash.substring(1));
-      // const accessToken = params.get("access_token");
-      // const refreshToken = params.get("refresh_token");
-
-      // if (accessToken && refreshToken) {
-      //   const { data: sessionData, error: sessionError } =
-      //     await supabase.auth.setSession({
-      //       access_token: accessToken,
-      //       refresh_token: refreshToken,
-      //     });
-
-      //   if (sessionError) throw sessionError;
-      //   return sessionData;
-      // }
+    if (response.data?.idToken) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: response.data.idToken,
+      });
+      console.log("google sign in", error, data);
     }
-
-    throw new Error("Authentication failed");
-  } catch (error) {
-    console.error("Exception in signInWithGoogle:", error);
-    throw error;
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+    if (sessionData?.session) {
+      // Store the session in AsyncStorage for persistence
+      await AsyncStorage.setItem(
+        "supabase.auth.token",
+        sessionData.session.access_token,
+      );
+      // Navigate to home on successful login
+      router.replace("/(tabs)/home");
+    }
+  } catch (error: any) {
+    console.error("Error during Google sign in:", error);
   }
 };
 
