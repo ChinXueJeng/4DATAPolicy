@@ -15,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Paywall from "../../paywall";
 
 const RECENT_SEARCHES_KEY = "@recent_searches";
 const SEARCH_COUNT_KEY = "@search_count";
@@ -26,7 +25,6 @@ export default function ExploreScreen() {
   const [search, setSearch] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
   const [searchCount, setSearchCount] = useState(0);
-  const [showPaywall, setShowPaywall] = useState(false);
   const { t } = useLanguage();
   const { isSubscribed } = useSubscription();
 
@@ -75,7 +73,7 @@ export default function ExploreScreen() {
     if (search.length === 4) {
       // Check if user needs to see paywall (5+ searches and not subscribed)
       if (!isSubscribed && searchCount >= 4) {
-        setShowPaywall(true);
+        router.push("/paywall");
         return;
       }
 
@@ -105,10 +103,6 @@ export default function ExploreScreen() {
       setSearch("");
     }
   };
-
-  if (showPaywall) {
-    return <Paywall />;
-  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
