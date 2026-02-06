@@ -39,5 +39,12 @@
   "numbers": "数字",
   "Become a premium member": "成为会员",
   "Special_Prize": "特别奖",
-  "Consolation_Prize": "安慰奖"
+  "Consolation_Prize": "安慰奖",
+  "deleteAccount": "删除帐户",
+  "deleteAccountWarning": "您确定要删除您的帐户吗？此操作无法撤销，您将丢失所有数据。",
+  "confirmDelete": "是的，删除帐户",
+  "cancel": "取消",
+  "deletingAccount": "正在删除帐户...",
+  "accountDeleted": "帐户已成功删除",
+  "deleteAccountError": "删除帐户失败。请重试。"
 }

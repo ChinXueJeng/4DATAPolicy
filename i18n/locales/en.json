@@ -39,5 +39,12 @@
   "numbers": "numbers",
   "Become a premium member": "Become a premium member",
   "Special_Prize": "Special Prize",
-  "Consolation_Prize": "Consolation Prize"
+  "Consolation_Prize": "Consolation Prize",
+  "deleteAccount": "Delete Account",
+  "deleteAccountWarning": "Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.",
+  "confirmDelete": "Yes, Delete Account",
+  "cancel": "Cancel",
+  "deletingAccount": "Deleting Account...",
+  "accountDeleted": "Account deleted successfully",
+  "deleteAccountError": "Failed to delete account. Please try again."
 }

@@ -1,7 +1,9 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   Modal,
   ScrollView,
@@ -12,14 +14,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { supabase } from "@/lib/supabase";
 import { useLanguage } from "../contexts/LanguageContext";
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const { t, currentLanguage, changeLanguage } = useLanguage();
 
   type UserProfile = {
@@ -28,9 +33,58 @@ export default function ProfileScreen() {
     email: string;
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      setDeleting(true);
+
+      // Get the current user session
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        Alert.alert("Error", "Please log in again to delete your account.");
+        return;
+      }
+
+      // Call the edge function to delete the user account
+      const response = await fetch(
+        "https://mfrmfxtfjmuolckjfpys.supabase.co/functions/v1/delete-user-account",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (response.ok) {
+        // Sign out the user locally
+        await supabase.auth.signOut();
+        Alert.alert(t("accountDeleted"), "", [
+          {
+            text: "OK",
+            onPress: () => router.replace("/(auth)/login"),
+          },
+        ]);
+      } else {
+        const errorData = await response.text();
+        console.error("Delete account error:", errorData);
+        Alert.alert("Error", t("deleteAccountError"));
+      }
+    } catch (error) {
+      console.error("Delete account error:", error);
+      Alert.alert("Error", t("deleteAccountError"));
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top + 25 }]}>
-
       {/* Card */}
       <View style={styles.card}>
         <Text style={styles.title}>{t("myaccount")}</Text>
@@ -75,6 +129,14 @@ export default function ProfileScreen() {
           }}
         >
           <Text style={styles.logoutText}>{t("logout")}</Text>
+        </TouchableOpacity>
+
+        {/* Delete Account */}
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => setShowDeleteConfirm(true)}
+        >
+          <Text style={styles.deleteText}>{t("deleteAccount")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -743,6 +805,59 @@ export default function ProfileScreen() {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirm}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirm(false)}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <View style={styles.deleteModalHeader}>
+              <Ionicons name="warning" size={32} color="#ff4444" />
+              <Text style={styles.deleteModalTitle}>{t("deleteAccount")}</Text>
+            </View>
+
+            <Text style={styles.deleteModalMessage}>
+              {t("deleteAccountWarning")}
+            </Text>
+
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+              >
+                <Text style={styles.cancelButtonText}>{t("cancel")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.confirmDeleteButton,
+                  deleting && styles.disabledButton,
+                ]}
+                onPress={handleDeleteAccount}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text style={styles.confirmDeleteButtonText}>
+                      {t("deletingAccount")}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>
+                    {t("confirmDelete")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -777,7 +892,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 50, // Add padding to prevent content from going under the status bar
   },
- 
+
   modalBackButton: {
     position: "absolute",
     top: 50,
@@ -921,6 +1036,102 @@ const styles = StyleSheet.create({
   logoutText: {
     color: "#fff",
     fontWeight: "600",
+  },
+
+  deleteBtn: {
+    marginTop: 10,
+    backgroundColor: "#ff4444",
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ff4444",
+  },
+
+  deleteText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+
+  // Delete Modal Styles
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+
+  deleteModalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 25,
+    width: "100%",
+    maxWidth: 350,
+    alignItems: "center",
+    ...shadow,
+  },
+
+  deleteModalHeader: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333",
+    marginTop: 10,
+    textAlign: "center",
+  },
+
+  deleteModalMessage: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 30,
+  },
+
+  deleteModalButtons: {
+    gap: 15,
+    width: "100%",
+  },
+
+  cancelButton: {
+    backgroundColor: "#f5f5f5",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+
+  cancelButtonText: {
+    color: "#666",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+
+  confirmDeleteButton: {
+    backgroundColor: "#ff4444",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+
+  confirmDeleteButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+
+  disabledButton: {
+    opacity: 0.6,
+  },
+
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 
   subSectionTitle: {
