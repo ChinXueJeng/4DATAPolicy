@@ -1,7 +1,7 @@
 import { signInWithApple, signInWithGoogle, supabase } from "@/lib/supabase";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -83,6 +83,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       <Text style={styles.title}>Welcome To 4Data</Text>
       <Text style={styles.para}>
         Check High probability 4D numbers and detailed information easily!
