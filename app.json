@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.4Data.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -44,6 +45,7 @@
           }
         }
       ],
+      "expo-apple-authentication",
       "expo-secure-store",
       "expo-web-browser",
       "expo-localization",
