@@ -1,42 +1,54 @@
-import React, { useState, useEffect } from "react";
+import { useLanguage } from "@/app/contexts/LanguageContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
+  FlatList,
+  Keyboard,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Keyboard,
   TouchableWithoutFeedback,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useLanguage } from '@/app/contexts/LanguageContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Paywall from "../../paywall";
 
-const RECENT_SEARCHES_KEY = '@recent_searches';
+const RECENT_SEARCHES_KEY = "@recent_searches";
+const SEARCH_COUNT_KEY = "@search_count";
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
+  const [searchCount, setSearchCount] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
   const { t } = useLanguage();
+  const { isSubscribed } = useSubscription();
 
-  // Load recent searches from storage on component mount
+  // Load recent searches and search count from storage on component mount
   useEffect(() => {
-    const loadRecentSearches = async () => {
+    const loadData = async () => {
       try {
-        const storedSearches = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+        const [storedSearches, storedCount] = await Promise.all([
+          AsyncStorage.getItem(RECENT_SEARCHES_KEY),
+          AsyncStorage.getItem(SEARCH_COUNT_KEY),
+        ]);
         if (storedSearches) {
           setRecent(JSON.parse(storedSearches));
         }
+        if (storedCount) {
+          setSearchCount(parseInt(storedCount));
+        }
       } catch (error) {
-        console.error('Error loading recent searches:', error);
+        console.error("Error loading data:", error);
       }
     };
-    loadRecentSearches();
+    loadData();
   }, []);
 
   // Save recent searches to storage whenever it changes
@@ -44,7 +56,7 @@ export default function ExploreScreen() {
     try {
       await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
     } catch (error) {
-      console.error('Error saving recent searches:', error);
+      console.error("Error saving recent searches:", error);
     }
   };
 
@@ -61,27 +73,42 @@ export default function ExploreScreen() {
 
   const handleSearch = async () => {
     if (search.length === 4) {
+      // Check if user needs to see paywall (5+ searches and not subscribed)
+      if (!isSubscribed && searchCount >= 4) {
+        setShowPaywall(true);
+        return;
+      }
+
+      // Increment search count
+      const newSearchCount = searchCount + 1;
+      setSearchCount(newSearchCount);
+      await AsyncStorage.setItem(SEARCH_COUNT_KEY, newSearchCount.toString());
+
       // Create new recent searches array with the new search term at the beginning
       const newRecent = [
         search,
-        ...recent.filter(item => item !== search) // Remove duplicate if it exists
+        ...recent.filter((item) => item !== search), // Remove duplicate if it exists
       ].slice(0, 4); // Keep only 4 most recent
-      
+
       // Update state and save to storage
       setRecent(newRecent);
       await saveRecentSearches(newRecent);
-      
+
       // Navigate to number details with source parameter
       router.push({
-        pathname: '/(tabs)/explore/number-details_explore',
-        params: { 
+        pathname: "/(tabs)/explore/number-details_explore",
+        params: {
           number: search,
-          fromExplore: 'true'  // Add a flag to indicate navigation from explore
-        }
+          fromExplore: "true", // Add a flag to indicate navigation from explore
+        },
       });
       setSearch("");
     }
   };
+
+  if (showPaywall) {
+    return <Paywall />;
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -91,7 +118,7 @@ export default function ExploreScreen() {
           <View style={styles.searchBox}>
             <Ionicons name="search" size={18} color="#999" />
             <TextInput
-              placeholder={t('enter4digitnumber')}
+              placeholder={t("enter4digitnumber")}
               value={search}
               onChangeText={(text) => {
                 // Only allow numbers and limit to 4 digits
@@ -104,21 +131,24 @@ export default function ExploreScreen() {
               style={styles.input}
             />
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleSearch}
             disabled={search.length !== 4}
-            style={[styles.searchButton, search.length !== 4 && styles.searchButtonDisabled]}
+            style={[
+              styles.searchButton,
+              search.length !== 4 && styles.searchButtonDisabled,
+            ]}
           >
-            <Text style={styles.searchButtonText}>{t('search')}</Text>
+            <Text style={styles.searchButtonText}>{t("search")}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Recent Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.recentText}>{t('recent')}</Text>
+            <Text style={styles.recentText}>{t("recent")}</Text>
             <TouchableOpacity onPress={clearAll}>
-              <Text style={styles.clear}>{t('clearall')}</Text>
+              <Text style={styles.clear}>{t("clearall")}</Text>
             </TouchableOpacity>
           </View>
 
@@ -137,10 +167,8 @@ export default function ExploreScreen() {
                   }}
                   onPress={() => {
                     router.push({
-                      pathname: '/(tabs)/explore/number-details_explore',
-                      params: { number: item,
-                        fromExplore: 'true'
-                       }
+                      pathname: "/(tabs)/explore/number-details_explore",
+                      params: { number: item, fromExplore: "true" },
                     });
                   }}
                 >
@@ -246,15 +274,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   searchButtonDisabled: {
     backgroundColor: "#9ca3af",
     opacity: 0.7,
   },
   searchButtonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
 });
