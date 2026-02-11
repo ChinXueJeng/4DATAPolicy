@@ -46,5 +46,10 @@
   "cancel": "取消",
   "deletingAccount": "正在删除帐户...",
   "accountDeleted": "帐户已成功删除",
-  "deleteAccountError": "删除帐户失败。请重试。"
+  "deleteAccountError": "删除帐户失败。请重试。",
+  "loginRequired": "需要登录",
+  "pleaseLoginToSubscribe": "请登录以订阅高级功能。",
+  "pleaseLoginToViewAll": "请登录以查看所有号码。",
+  "pleaseLoginToContinueSearching": "请登录以继续搜索。",
+  "login": "登录"
 }

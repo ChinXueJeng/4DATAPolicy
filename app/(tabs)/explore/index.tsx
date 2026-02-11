@@ -1,10 +1,12 @@
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   FlatList,
   Keyboard,
   StyleSheet,
@@ -71,10 +73,35 @@ export default function ExploreScreen() {
 
   const handleSearch = async () => {
     if (search.length === 4) {
-      // Check if user needs to see paywall (5+ searches and not subscribed)
-      if (!isSubscribed && searchCount >= 4) {
-        router.push("/paywall");
-        return;
+      if (searchCount >= 4) {
+        // Check if user is logged in
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          Alert.alert(
+            t("loginRequired"),
+            t("pleaseLoginToContinueSearching"),
+            [
+              {
+                text: t("cancel"),
+                style: "cancel",
+              },
+              {
+                text: t("login"),
+                onPress: () => router.replace("/(auth)/login"),
+              },
+            ]
+          );
+          return;
+        }
+
+        // Check if user needs to see paywall (subscribed check)
+        if (!isSubscribed) {
+          router.push("/paywall");
+          return;
+        }
       }
 
       // Increment search count

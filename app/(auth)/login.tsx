@@ -161,6 +161,16 @@ export default function LoginScreen() {
               Create Account
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.skipButton]}
+            onPress={() => router.replace("/(tabs)/home")}
+            disabled={loading}
+          >
+            <Text style={[styles.buttonText, { color: "#1E5BFF" }]}>
+              Continue as Guest
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

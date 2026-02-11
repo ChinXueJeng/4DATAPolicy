@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -32,6 +32,38 @@ export default function ProfileScreen() {
     username: string;
     email: string;
   };
+
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setProfile({
+          id: session.user.id,
+          username: session.user.email?.split("@")[0] || "User",
+          email: session.user.email || "",
+        });
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        setProfile({
+          id: session.user.id,
+          username: session.user.email?.split("@")[0] || "User",
+          email: session.user.email || "",
+        });
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleDeleteAccount = async () => {
     try {
@@ -87,7 +119,9 @@ export default function ProfileScreen() {
     <View style={[styles.container, { paddingTop: insets.top + 25 }]}>
       {/* Card */}
       <View style={styles.card}>
-        <Text style={styles.title}>{t("myaccount")}</Text>
+        <Text style={styles.title}>
+          {session ? t("myaccount") : "Guest Account"}
+        </Text>
 
         {/* Avatar */}
         <Image
@@ -117,27 +151,55 @@ export default function ProfileScreen() {
         />
         <ProfileRow
           title={t("Become a premium member")}
-          onPress={() => router.push("/paywall")}
-        />
-        {/* Logout */}
-        <TouchableOpacity
-          style={styles.logoutBtn}
           onPress={() => {
-            // Add any logout logic here (e.g., clear tokens, reset auth state)
-            // Then navigate to login screen
-            router.replace("/(auth)/login");
+            if (!session) {
+              Alert.alert(
+                t("loginRequired"),
+                t("pleaseLoginToSubscribe"),
+                [
+                  {
+                    text: t("cancel"),
+                    style: "cancel",
+                  },
+                  {
+                    text: t("login"),
+                    onPress: () => router.replace("/(auth)/login"),
+                  },
+                ]
+              );
+            } else {
+              router.push("/paywall");
+            }
           }}
-        >
-          <Text style={styles.logoutText}>{t("logout")}</Text>
-        </TouchableOpacity>
+        />
+        {/* Logout / Login */}
+        {session ? (
+          <>
+            <TouchableOpacity
+              style={styles.logoutBtn}
+              onPress={async () => {
+                await supabase.auth.signOut();
+                router.replace("/(auth)/login");
+              }}
+            >
+              <Text style={styles.logoutText}>{t("logout")}</Text>
+            </TouchableOpacity>
 
-        {/* Delete Account */}
-        <TouchableOpacity
-          style={styles.deleteBtn}
-          onPress={() => setShowDeleteConfirm(true)}
-        >
-          <Text style={styles.deleteText}>{t("deleteAccount")}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => setShowDeleteConfirm(true)}
+            >
+              <Text style={styles.deleteText}>{t("deleteAccount")}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity
+            style={[styles.logoutBtn, { backgroundColor: "#1E5BFF" }]}
+            onPress={() => router.replace("/(auth)/login")}
+          >
+            <Text style={styles.logoutText}>Sign In / Register</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Terms & Conditions Modal */}

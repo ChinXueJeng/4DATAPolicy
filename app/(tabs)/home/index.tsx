@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Image,
   Modal,
@@ -105,8 +106,8 @@ const useNextDrawNumbers = () => {
         // If data exists, randomly pick 20 items
         const prob90 = allProbData
           ? allProbData
-              .sort(() => Math.random() - 0.5) // Shuffle array
-              .slice(0, 20)
+            .sort(() => Math.random() - 0.5) // Shuffle array
+            .slice(0, 20)
           : null;
 
         // Fetch 5 numbers with prob between 80 and 89
@@ -119,8 +120,8 @@ const useNextDrawNumbers = () => {
         // If data exists, randomly pick 20 items
         const prob80 = allProbData2
           ? allProbData2
-              .sort(() => Math.random() - 0.5) // Shuffle array
-              .slice(0, 12)
+            .sort(() => Math.random() - 0.5) // Shuffle array
+            .slice(0, 12)
           : null;
 
         // Fetch 5 numbers with prob between 70 and 79
@@ -133,8 +134,8 @@ const useNextDrawNumbers = () => {
         // If data exists, randomly pick 20 items
         const prob70 = allProbData3
           ? allProbData3
-              .sort(() => Math.random() - 0.5) // Shuffle array
-              .slice(0, 3)
+            .sort(() => Math.random() - 0.5) // Shuffle array
+            .slice(0, 3)
           : null;
 
         if (error90 || error80 || error70) throw error90 || error80 || error70;
@@ -216,8 +217,8 @@ const useNextDrawDate = () => {
           currentHour < 21
             ? today
             : new Date(now.setDate(now.getDate() + 1))
-                .toISOString()
-                .split("T")[0];
+              .toISOString()
+              .split("T")[0];
         const { data, error } = await supabase
           .from("lotterydate")
           .select("date")
@@ -281,6 +282,24 @@ export default function HomeScreen() {
   const CHIP_WIDTH = (SCREEN_WIDTH - GRID_PADDING - GAP * 3) / 4;
 
   const handleViewAllPress = useCallback(() => {
+    if (!userId || userId === "default") {
+      Alert.alert(
+        t("loginRequired"),
+        t("pleaseLoginToViewAll"),
+        [
+          {
+            text: t("cancel"),
+            style: "cancel",
+          },
+          {
+            text: t("login"),
+            onPress: () => router.replace("/(auth)/login"),
+          },
+        ]
+      );
+      return;
+    }
+
     if (isSubscribed) {
       router.push({
         pathname: "/(tabs)/home/view-all",
@@ -290,7 +309,7 @@ export default function HomeScreen() {
       // Navigate to subscription screen
       router.push({ pathname: "/paywall" });
     }
-  }, [isSubscribed, router]);
+  }, [isSubscribed, router, userId]);
 
   function ChipGrid({ data, onPressChip, onPressViewAll }: ChipGridProps) {
     return (

@@ -46,5 +46,10 @@
   "cancel": "Cancel",
   "deletingAccount": "Deleting Account...",
   "accountDeleted": "Account deleted successfully",
-  "deleteAccountError": "Failed to delete account. Please try again."
+  "deleteAccountError": "Failed to delete account. Please try again.",
+  "loginRequired": "Login Required",
+  "pleaseLoginToSubscribe": "Please log in to subscribe to premium features.",
+  "pleaseLoginToViewAll": "Please log in to view all numbers.",
+  "pleaseLoginToContinueSearching": "Please log in to continue searching.",
+  "login": "Login"
 }
