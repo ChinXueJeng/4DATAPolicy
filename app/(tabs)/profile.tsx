@@ -153,20 +153,16 @@ export default function ProfileScreen() {
           title={t("Become a premium member")}
           onPress={() => {
             if (!session) {
-              Alert.alert(
-                t("loginRequired"),
-                t("pleaseLoginToSubscribe"),
-                [
-                  {
-                    text: t("cancel"),
-                    style: "cancel",
-                  },
-                  {
-                    text: t("login"),
-                    onPress: () => router.replace("/(auth)/login"),
-                  },
-                ]
-              );
+              Alert.alert(t("loginRequired"), t("pleaseLoginToSubscribe"), [
+                {
+                  text: t("cancel"),
+                  style: "cancel",
+                },
+                {
+                  text: t("login"),
+                  onPress: () => router.replace("/(auth)/login"),
+                },
+              ]);
             } else {
               router.push("/paywall");
             }
@@ -197,7 +193,7 @@ export default function ProfileScreen() {
             style={[styles.logoutBtn]}
             onPress={() => router.replace("/(auth)/login")}
           >
-            <Text style={styles.logoutText}>{t("SignIn/Register")}</Text>
+            <Text style={styles.logoutText}>{t("signInRegister")}</Text>
           </TouchableOpacity>
         )}
       </View>
