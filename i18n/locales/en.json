@@ -51,5 +51,6 @@
   "pleaseLoginToSubscribe": "Please log in to subscribe to premium features.",
   "pleaseLoginToViewAll": "Please log in to view all numbers.",
   "pleaseLoginToContinueSearching": "Please log in to continue searching.",
-  "login": "Login"
+  "login": "Login",
+  "signInRegister": "Sign In / Register"
 }

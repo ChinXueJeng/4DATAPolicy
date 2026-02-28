@@ -51,5 +51,6 @@
   "pleaseLoginToSubscribe": "请登录以订阅高级功能。",
   "pleaseLoginToViewAll": "请登录以查看所有号码。",
   "pleaseLoginToContinueSearching": "请登录以继续搜索。",
-  "login": "登录"
+  "login": "登录",
+  "signInRegister": "登录/注册"
 }

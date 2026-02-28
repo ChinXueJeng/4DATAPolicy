@@ -194,10 +194,10 @@ export default function ProfileScreen() {
           </>
         ) : (
           <TouchableOpacity
-            style={[styles.logoutBtn, { backgroundColor: "#1E5BFF" }]}
+            style={[styles.logoutBtn]}
             onPress={() => router.replace("/(auth)/login")}
           >
-            <Text style={styles.logoutText}>Sign In / Register</Text>
+            <Text style={styles.logoutText}>{t("SignIn/Register")}</Text>
           </TouchableOpacity>
         )}
       </View>

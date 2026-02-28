@@ -64,7 +64,7 @@ export default function AnalysisScreen() {
           .select('draw_date, number, prize_type, total_points')
           .in('prize_type', ['1', '2', '3'])
           .order('draw_date', { ascending: false })
-          .limit(30); // 10 dates * 3 prize types
+          .limit(42); // 10 dates * 3 prize types
         if (fetchError) throw fetchError;
         // Group results by date
         const groupedResults = data.reduce((acc: Record<string, LotteryResult[]>, item) => {
