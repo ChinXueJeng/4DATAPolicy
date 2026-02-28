@@ -2,7 +2,8 @@ import { signInWithApple, signInWithGoogle, supabase } from "@/lib/supabase";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, Stack } from "expo-router";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
   ActivityIndicator,
   Alert,
@@ -26,7 +27,17 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
+  useEffect(() => {
+    // Check if user is already signed in
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        // User is signed in, redirect to home
+        router.replace("/(tabs)/home");
+      }
+    };
+    checkSession();
+  }, []);
   const handleLogin = async (
     type: "email" | "google" | "facebook" | "apple",
   ) => {
