@@ -2,7 +2,7 @@ import { signInWithApple, signInWithGoogle, supabase } from "@/lib/supabase";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, Stack } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#1E5BFF",
     marginTop: 10,
-    width: "50%",
+    width: "100%",
   },
   buttonText: {
     color: "#fff",
